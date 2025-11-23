@@ -1311,8 +1311,111 @@
                             }
                         </div>
                     `;
-                    userItem.onclick = () => showUserChat(doc.id, userData.name);
-                    userList.appendChild(userItem);
+                           async function showUserChat(userId, userName) {
+            if (!window.firebaseDb) return;
+            
+            try {
+                console.log("Loading chat for user:", userId, userName);
+                
+                document.getElementById('selectedUserName').textContent = userName;
+                document.getElementById('userChatSection').style.display = 'block';
+                document.getElementById('userChat').innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">Loading chat history...</div>';
+                
+                // Get ALL messages first (to avoid Firebase index issues)
+                const messagesSnapshot = await window.firebaseGetDocs(
+                    window.firebaseCollection(window.firebaseDb, "messages")
+                );
+                
+                console.log("Total messages in database:", messagesSnapshot.size);
+                
+                const messages = [];
+                let userMessageCount = 0;
+                
+                // Filter messages for this specific user
+                messagesSnapshot.forEach((doc) => {
+                    const messageData = doc.data();
+                    if (messageData.userId === userId) {
+                        userMessageCount++;
+                        messages.push({
+                            id: doc.id,
+                            ...messageData
+                        });
+                    }
+                });
+                
+                console.log("Messages found for user:", userMessageCount);
+                
+                // Sort messages by timestamp
+                messages.sort((a, b) => {
+                    try {
+                        const timeA = a.timestamp ? a.timestamp.toDate().getTime() : 0;
+                        const timeB = b.timestamp ? b.timestamp.toDate().getTime() : 0;
+                        return timeA - timeB;
+                    } catch (error) {
+                        return 0;
+                    }
+                });
+                
+                const userChat = document.getElementById('userChat');
+                userChat.innerHTML = '';
+                
+                if (messages.length === 0) {
+                    userChat.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">No chat history found for this user.</div>';
+                    document.getElementById('chatHistoryCount').textContent = '0 messages';
+                    return;
+                }
+                
+                document.getElementById('chatHistoryCount').textContent = `${messages.length} messages`;
+                
+                // Display each message
+                messages.forEach(data => {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = `message ${data.sender}-message`;
+                    
+                    const avatar = document.createElement('div');
+                    avatar.className = `avatar ${data.sender}-avatar`;
+                    avatar.textContent = data.sender === 'user' ? '👤' : '👑';
+                    
+                    const messageContent = document.createElement('div');
+                    messageContent.className = 'message-content';
+                    
+                    // Format message text
+                    let messageText = data.message || '';
+                    messageText = messageText.replace(/\n/g, '<br>');
+                    
+                    // Add timestamp
+                    let timestamp = 'Unknown time';
+                    try {
+                        if (data.timestamp) {
+                            timestamp = data.timestamp.toDate().toLocaleString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                        }
+                    } catch (error) {
+                        timestamp = 'Invalid time';
+                    }
+                    
+                    messageContent.innerHTML = `
+                        <div>${messageText}</div>
+                        <div class="timestamp">${timestamp}</div>
+                    `;
+                    
+                    messageDiv.appendChild(avatar);
+                    messageDiv.appendChild(messageContent);
+                    userChat.appendChild(messageDiv);
+                });
+                
+                userChat.scrollTop = userChat.scrollHeight;
+                
+            } catch (error) {
+                console.error("Error loading user chat:", error);
+                document.getElementById('userChat').innerHTML = 
+                    '<div style="text-align: center; padding: 20px; color: #e74c3c;">Error loading chat history: ' + error.message + '</div>';
+            }
+        }
                     
                     // Add to limited users list if limited
                     if (userData.isLimited) {
