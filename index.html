@@ -1,1833 +1,3315 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Queen Ripa 😘🌸 - AI Chat Bot</title>
+    <title>ArFollower - SMM Panel & Reseller System</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- QR Code Generator -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
+        
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --border: #dee2e6;
+        }
+        
         body {
-            font-family: 'Segoe UI', 'Microsoft YaHei', 'Kalpurush', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 0;
-            line-height: 1.6;
         }
-
-        .container {
-            max-width: 100%;
-            margin: 0 auto;
-            background: white;
-            height: 100vh;
+        
+        /* Authentication Styles */
+        .auth-container {
             display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
-            color: white;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
             padding: 20px;
-            text-align: center;
-            border-bottom: 3px solid #fff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: relative;
         }
-
-        .header h1 {
-            font-size: 2em;
-            margin-bottom: 5px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .header p {
-            opacity: 0.95;
-            font-size: 1em;
-        }
-
-        .status {
-            background: #2ecc71;
-            color: white;
-            padding: 5px 12px;
+        
+        .auth-box {
+            background: white;
             border-radius: 15px;
-            font-size: 0.8em;
-            display: inline-block;
-            margin-top: 8px;
-        }
-
-        .admin-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        .admin-btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
-
-        .chat-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            background: #f8f9fa;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .message {
-            margin-bottom: 15px;
-            display: flex;
-            align-items: flex-start;
-            animation: fadeIn 0.3s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .user-message {
-            justify-content: flex-end;
-        }
-
-        .bot-message {
-            justify-content: flex-start;
-        }
-
-        .message-content {
-            max-width: 75%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            font-size: 1em;
-            line-height: 1.4;
-            position: relative;
-            word-wrap: break-word;
-            white-space: pre-wrap;
-        }
-
-        .user-message .message-content {
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
-            border-bottom-right-radius: 5px;
-        }
-
-        .bot-message .message-content {
-            background: white;
-            color: #2c3e50;
-            border: 2px solid #e9ecef;
-            border-bottom-left-radius: 5px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin: 0 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1em;
-            border: 2px solid white;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        }
-
-        .user-avatar {
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
-        }
-
-        .bot-avatar {
-            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
-            color: white;
-        }
-
-        .input-container {
-            padding: 15px;
-            background: white;
-            border-top: 2px solid #f1f3f4;
-            display: flex;
-            gap: 10px;
-            align-items: flex-end;
-        }
-
-        #userInput {
-            flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #e9ecef;
-            border-radius: 20px;
-            font-size: 1em;
-            outline: none;
-            transition: all 0.3s ease;
-            background: #f8f9fa;
-            resize: none;
-            min-height: 50px;
-            max-height: 150px;
-            overflow-y: auto;
-            font-family: inherit;
-        }
-
-        #userInput:focus {
-            border-color: #ff6b6b;
-            background: white;
-            box-shadow: 0 0 15px rgba(255, 107, 107, 0.3);
-        }
-
-        #sendButton {
-            padding: 12px 25px;
-            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
-            color: white;
-            border: none;
-            border-radius: 20px;
-            font-size: 1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
-            height: 50px;
-        }
-
-        #sendButton:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.6);
-        }
-
-        #sendButton:active {
-            transform: translateY(0);
-        }
-
-        #sendButton:disabled {
-            background: #95a5a6;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .typing-indicator {
-            display: none;
-            padding: 12px 18px;
-            background: white;
-            border-radius: 18px;
-            margin-bottom: 15px;
-            border: 2px solid #e9ecef;
-            align-self: flex-start;
-            max-width: 150px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-
-        .typing-content {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #7f8c8d;
-            font-size: 0.9em;
-        }
-
-        .typing-dots {
-            display: flex;
-            gap: 3px;
-        }
-
-        .typing-dot {
-            width: 6px;
-            height: 6px;
-            background: #ff6b6b;
-            border-radius: 50%;
-            animation: typing 1.4s infinite ease-in-out;
-        }
-
-        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-
-        @keyframes typing {
-            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
-            40% { transform: scale(1); opacity: 1; }
-        }
-
-        .controls {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .control-btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 0.85em;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        }
-
-        .clear-btn {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-        }
-
-        .clear-btn:hover {
-            background: linear-gradient(135deg, #c0392b, #a93226);
-        }
-
-        .copy-btn {
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            color: white;
-        }
-
-        .copy-btn:hover {
-            background: linear-gradient(135deg, #2980b9, #21618c);
-        }
-
-        .info-btn {
-            background: linear-gradient(135deg, #9b59b6, #8e44ad);
-            color: white;
-        }
-
-        .info-btn:hover {
-            background: linear-gradient(135deg, #8e44ad, #7d3c98);
-        }
-
-        .timestamp {
-            font-size: 0.7em;
-            opacity: 0.7;
-            margin-top: 3px;
-            text-align: right;
-        }
-
-        .message-actions {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            display: none;
-        }
-
-        .message-content:hover .message-actions {
-            display: block;
-        }
-
-        .copy-message-btn {
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            font-size: 0.7em;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .sent-indicator {
-            font-size: 0.7em;
-            opacity: 0.7;
-            margin-top: 2px;
-            text-align: right;
-            color: #27ae60;
-        }
-
-        /* Special content styling */
-        .link-box {
-            background: #f1f8ff;
-            border: 1px solid #c8e1ff;
-            border-radius: 8px;
-            padding: 10px;
-            margin: 5px 0;
-            word-break: break-all;
-        }
-
-        .link-box a {
-            color: #0366d6;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .link-box a:hover {
-            text-decoration: underline;
-        }
-
-        .code-box {
-            background: #f6f8fa;
-            border: 1px solid #e1e4e8;
-            border-radius: 6px;
-            padding: 12px;
-            margin: 8px 0;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            position: relative;
-            overflow-x: auto;
-        }
-
-        .copy-code-btn {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: #0366d6;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-size: 0.7em;
-            cursor: pointer;
-        }
-
-        .solution-box {
-            background: #e8f5e9;
-            border: 1px solid #c8e6c9;
-            border-radius: 8px;
-            padding: 12px;
-            margin: 8px 0;
-            position: relative;
-        }
-
-        .solution-title {
-            font-weight: bold;
-            color: #2e7d32;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .list-content {
-            margin-left: 20px;
-        }
-
-        .list-content li {
-            margin-bottom: 5px;
-        }
-
-        /* Limit Message */
-        .limit-message {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 10px 0;
-            text-align: center;
-            color: #856404;
-        }
-
-        /* Premium Message */
-        .premium-message {
-            background: #e8f5e9;
-            border: 2px solid #4caf50;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 15px 0;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .premium-title {
-            font-weight: bold;
-            color: #2e7d32;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-        }
-
-        .premium-number {
-            background: #4caf50;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            margin: 15px 0;
-            display: inline-block;
-            font-size: 1.2em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-        }
-
-        .premium-number:hover {
-            background: #388e3c;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-
-        .premium-note {
-            font-size: 0.9em;
-            color: #666;
-            margin-top: 10px;
-        }
-
-        /* Admin Panel Styles */
-        .admin-panel {
-            position: fixed;
-            top: 0;
-            left: 0;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
             width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
+            max-width: 450px;
+            overflow: hidden;
+        }
+        
+        .auth-header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .auth-header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        
+        .auth-header p {
+            opacity: 0.9;
+        }
+        
+        .auth-body {
+            padding: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        .btn-block {
+            width: 100%;
+        }
+        
+        .btn-google {
+            background: white;
+            color: #444;
+            border: 2px solid var(--border);
+        }
+        
+        .btn-google:hover {
+            background: #f8f9fa;
+            border-color: #ccc;
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            position: relative;
+        }
+        
+        .divider::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background: var(--border);
+        }
+        
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .auth-footer {
+            text-align: center;
+            padding: 20px 0 0;
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .auth-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        /* Dashboard Styles */
+        .dashboard-container {
+            display: none;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: var(--dark);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-header {
+            padding: 25px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo i {
+            color: var(--success);
+        }
+        
+        .user-info {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .user-details h4 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .user-details p {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+        
+        .nav-menu {
+            padding: 20px 0;
+        }
+        
+        .nav-item {
+            list-style: none;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left-color: var(--primary);
+        }
+        
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            background: #f5f7fb;
+            min-height: 100vh;
+        }
+        
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .page-title h2 {
+            color: var(--dark);
+            font-size: 24px;
+        }
+        
+        .page-title p {
+            color: var(--gray);
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .currency-toggle {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid var(--border);
+        }
+        
+        .currency-btn {
+            padding: 8px 15px;
+            background: transparent;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .currency-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .user-menu {
+            position: relative;
+        }
+        
+        .user-menu-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            border: 2px solid var(--border);
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .user-menu-btn:hover {
+            border-color: var(--primary);
+        }
+        
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            min-width: 200px;
             display: none;
             z-index: 1000;
-            overflow-y: auto;
         }
-
-        .admin-content {
-            background: white;
-            width: 90%;
-            max-width: 1200px;
-            margin: 30px auto;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 5px 30px rgba(0,0,0,0.3);
-        }
-
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .admin-header h2 {
-            color: #2c3e50;
-        }
-
-        .close-admin {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 8px 15px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .admin-tabs {
-            display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .admin-tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-        }
-
-        .admin-tab.active {
-            border-bottom-color: #ff6b6b;
-            color: #ff6b6b;
-            font-weight: bold;
-        }
-
-        .admin-section {
-            display: none;
-        }
-
-        .admin-section.active {
+        
+        .user-dropdown.show {
             display: block;
         }
-
-        .user-list {
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid #eee;
-            border-radius: 5px;
+        
+        .dropdown-item {
+            display: block;
+            padding: 12px 20px;
+            text-decoration: none;
+            color: var(--dark);
+            transition: all 0.3s;
         }
-
-        .user-item {
-            padding: 12px 15px;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .user-item:hover {
-            background: #f9f9f9;
-        }
-
-        .user-item.active {
-            background: #e3f2fd;
-        }
-
-        .user-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .limit-btn, .unlimit-btn {
-            padding: 4px 8px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8em;
-            font-weight: bold;
-        }
-
-        .limit-btn {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .unlimit-btn {
-            background: #2ecc71;
-            color: white;
-        }
-
-        .user-chat {
-            max-height: 500px;
-            overflow-y: auto;
-            border: 1px solid #eee;
-            border-radius: 5px;
-            padding: 15px;
+        
+        .dropdown-item:hover {
             background: #f8f9fa;
+            color: var(--primary);
         }
-
-        .stats-grid {
+        
+        .dropdown-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 5px 0;
+        }
+        
+        /* Dashboard Cards */
+        .stats-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
-
+        
         .stat-card {
             background: white;
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.8em;
-            font-weight: bold;
-            color: #ff6b6b;
-        }
-
-        .stat-label {
-            font-size: 0.9em;
-            color: #7f8c8d;
-        }
-
-        /* Limited Users Section */
-        .limited-users-list {
-            max-height: 500px;
-            overflow-y: auto;
-            border: 1px solid #eee;
-            border-radius: 5px;
-        }
-
-        .limited-user-item {
-            padding: 12px 15px;
-            border-bottom: 1px solid #eee;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 20px;
+            transition: all 0.3s;
         }
-
-        .limited-user-item:hover {
-            background: #f9f9f9;
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
-
-        .limited-user-info {
-            flex: 1;
+        
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
         }
-
-        .limited-user-name {
-            font-weight: bold;
+        
+        .stat-info h3 {
+            font-size: 28px;
+            color: var(--dark);
             margin-bottom: 5px;
         }
-
-        .limited-user-details {
-            font-size: 0.8em;
-            color: #666;
+        
+        .stat-info p {
+            color: var(--gray);
+            font-size: 14px;
         }
-
-        .limited-user-actions {
+        
+        /* Categories */
+        .categories-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            color: var(--dark);
+            margin-bottom: 20px;
             display: flex;
-            gap: 8px;
+            align-items: center;
+            gap: 10px;
         }
-
-        /* Name input modal */
-        .name-modal {
+        
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .category-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .category-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .category-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        /* Services */
+        .services-section {
+            display: none;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .service-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+        
+        .service-card:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .service-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .service-code {
+            background: #f8f9fa;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray);
+        }
+        
+        .service-price {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .service-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+        
+        .service-description {
+            color: var(--gray);
+            font-size: 14px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .btn-order {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-order:hover {
+            background: var(--secondary);
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: none;
+            background: rgba(0, 0, 0, 0.5);
             z-index: 2000;
-            align-items: center;
             justify-content: center;
+            align-items: center;
         }
-
-        .name-modal-content {
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
             background: white;
+            border-radius: 15px;
             width: 90%;
-            max-width: 400px;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            color: var(--dark);
+            font-size: 20px;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray);
+            transition: all 0.3s;
+        }
+        
+        .modal-close:hover {
+            color: var(--danger);
+        }
+        
+        .modal-body {
+            padding: 25px;
+        }
+        
+        /* Orders Page */
+        .orders-container {
+            display: none;
+        }
+        
+        .orders-list {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .order-card {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+        
+        .order-card:hover {
+            background: #f8f9fa;
+        }
+        
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .order-id {
+            font-weight: 700;
+            color: var(--dark);
+        }
+        
+        .order-status {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-processing {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .status-complete {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-cancel {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--success);
+            border-radius: 4px;
+            transition: width 0.5s;
+        }
+        
+        .order-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .order-detail {
+            font-size: 14px;
+        }
+        
+        .order-detail label {
+            display: block;
+            color: var(--gray);
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        
+        .order-detail span {
+            color: var(--dark);
+            font-weight: 500;
+        }
+        
+        .order-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+            border-radius: 5px;
+        }
+        
+        .btn-copy {
+            background: #f8f9fa;
+            color: var(--dark);
+            border: 1px solid var(--border);
+        }
+        
+        /* Fund Page */
+        .fund-container {
+            display: none;
+        }
+        
+        .balance-display {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .balance-amount {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+        
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .payment-method {
+            background: white;
             border-radius: 10px;
             padding: 25px;
-            box-shadow: 0 5px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .payment-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .payment-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .payment-name h4 {
+            color: var(--dark);
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        
+        .payment-name p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .qr-code {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        #cryptoQr {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        
+        .wallet-address {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 14px;
+            position: relative;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .payment-history {
+            margin-top: 40px;
+        }
+        
+        .table {
+            width: 100%;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .table th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            color: var(--dark);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .table td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            color: var(--gray);
+        }
+        
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Profile Page */
+        .profile-container {
+            display: none;
+        }
+        
+        .profile-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            position: relative;
+        }
+        
+        .avatar-change {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            text-align: center;
+            padding: 5px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .profile-info h3 {
+            font-size: 28px;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+        
+        .profile-info p {
+            color: var(--gray);
+            margin-bottom: 5px;
+        }
+        
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .profile-stat {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
             text-align: center;
         }
-
-        .name-modal h3 {
-            margin-bottom: 15px;
-            color: #2c3e50;
+        
+        .profile-stat h4 {
+            font-size: 24px;
+            color: var(--dark);
+            margin-bottom: 5px;
         }
-
-        #userNameInput {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            font-size: 1em;
+        
+        .profile-stat p {
+            color: var(--gray);
+            font-size: 14px;
         }
-
-        .modal-buttons {
+        
+        .profile-form {
+            margin-top: 30px;
+        }
+        
+        /* Support Page */
+        .support-container {
+            display: none;
+        }
+        
+        .contact-info {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .contact-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+        
+        .contact-details h4 {
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        
+        .contact-details p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .support-form {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .request-list {
+            margin-top: 40px;
+        }
+        
+        /* Admin Panel */
+        .admin-container {
+            display: none;
+        }
+        
+        .admin-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 5px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+        
+        .admin-tab {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            font-weight: 600;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            border-radius: 8px;
+        }
+        
+        .admin-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .admin-content {
+            display: none;
+        }
+        
+        .admin-content.active {
+            display: block;
+        }
+        
+        .data-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .table-actions {
             display: flex;
             gap: 10px;
         }
-
-        .modal-btn {
-            flex: 1;
-            padding: 10px;
+        
+        .btn-edit {
+            background: #cce5ff;
+            color: #004085;
             border: none;
+            padding: 5px 10px;
             border-radius: 5px;
             cursor: pointer;
-            font-weight: bold;
         }
-
-        .modal-primary {
-            background: #ff6b6b;
-            color: white;
+        
+        .btn-delete {
+            background: #f8d7da;
+            color: #721c24;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
         }
-
-        .modal-secondary {
-            background: #eee;
-            color: #333;
+        
+        /* Mobile Bottom Navigation */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 10px;
+            border-top: 1px solid var(--border);
+            z-index: 1000;
         }
-
-        /* Scrollbar Styling */
-        .chat-container::-webkit-scrollbar {
-            width: 6px;
+        
+        .mobile-nav-items {
+            display: flex;
+            justify-content: space-around;
         }
-
-        .chat-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 8px;
+        
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--gray);
+            font-size: 12px;
         }
-
-        .chat-container::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
-            border-radius: 8px;
+        
+        .mobile-nav-item.active {
+            color: var(--primary);
         }
-
-        .chat-container::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        
+        .mobile-nav-item i {
+            font-size: 20px;
+            margin-bottom: 5px;
         }
-
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+                overflow: hidden;
+            }
+            
+            .sidebar-header .logo span,
+            .user-details,
+            .nav-link span {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+            }
+            
+            .user-info {
+                justify-content: center;
+                padding: 15px 10px;
+            }
+            
+            .nav-link {
+                justify-content: center;
+                padding: 15px 10px;
+            }
+        }
+        
         @media (max-width: 768px) {
-            .container {
-                height: 100vh;
+            .sidebar {
+                display: none;
             }
             
-            .header h1 {
-                font-size: 1.6em;
+            .main-content {
+                margin-left: 0;
+                padding-bottom: 80px;
             }
             
-            .message-content {
-                max-width: 85%;
+            .mobile-nav {
+                display: block;
             }
             
-            .avatar {
-                width: 35px;
-                height: 35px;
-                margin: 0 8px;
-                font-size: 0.9em;
+            .top-bar {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
             }
             
-            .input-container {
-                padding: 12px;
+            .stats-cards {
+                grid-template-columns: 1fr;
             }
-            
-            .admin-content {
-                width: 95%;
-                padding: 15px;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
             }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .notification.success {
+            background: #28a745;
+        }
+        
+        .notification.error {
+            background: #dc3545;
+        }
+        
+        .notification.info {
+            background: #17a2b8;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>👑 Queen Ripa 😘🌸</h1>
-            <p>Your Personal AI Assistant</p>
-            <div class="status">Created By Mr. Abuhurira 🙃✅& Ready</div>
-            <button class="admin-btn" onclick="showAdminLogin()">Admin</button>
-        </div>
-
-        <div class="chat-container" id="chatContainer">
-            <div class="message bot-message">
-                <div class="avatar bot-avatar">👑</div>
-                <div class="message-content">
-                    <strong>Assalamu Alaikum! 😊 I'm Queen Ripa 😘🌸</strong><br>
-                    I'm your friendly Muslim AI assistant here to help you with anything you need! Feel free to ask me questions in any language. 💝
-                    <div class="timestamp" id="initialTime"></div>
-                </div>
+    <!-- Authentication Container -->
+    <div class="auth-container" id="authContainer">
+        <div class="auth-box">
+            <div class="auth-header">
+                <h1>ArFollower SMM</h1>
+                <p>Professional SMM Panel & Reseller System</p>
             </div>
-        </div>
-
-        <div class="typing-indicator" id="typingIndicator">
-            <div class="typing-content">
-                <div class="typing-dots">
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                </div>
-                <span>Typing...</span>
-            </div>
-        </div>
-
-        <div class="input-container">
-            <textarea id="userInput" placeholder="Type your message here..." autocomplete="off"></textarea>
-            <button id="sendButton">📤 Send</button>
-        </div>
-
-        <div class="controls">
-            <button class="control-btn clear-btn" onclick="clearChat()">🗑️ Clear Chat</button>
-            <button class="control-btn copy-btn" onclick="copyChat()">📋 Copy Chat</button>
-            <button class="control-btn info-btn" onclick="showInfo()">ℹ️ Info</button>
-        </div>
-    </div>
-
-    <!-- Name Input Modal -->
-    <div class="name-modal" id="nameModal">
-        <div class="name-modal-content">
-            <h3>Welcome to Queen Ripa 😘🌸</h3>
-            <p>Please enter your name to continue chatting:</p>
-            <input type="text" id="userNameInput" placeholder="Your name">
-            <div class="modal-buttons">
-                <button class="modal-btn modal-secondary" onclick="skipName()">Skip</button>
-                <button class="modal-btn modal-primary" onclick="saveUserName()">Continue</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Admin Login Modal -->
-    <div class="name-modal" id="adminLoginModal">
-        <div class="name-modal-content">
-            <h3>Admin Login</h3>
-            <p>Enter admin passcode:</p>
-            <input type="password" id="adminPasscode" placeholder="Admin passcode">
-            <div class="modal-buttons">
-                <button class="modal-btn modal-secondary" onclick="closeAdminLogin()">Cancel</button>
-                <button class="modal-btn modal-primary" onclick="verifyAdmin()">Login</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Admin Panel -->
-    <div class="admin-panel" id="adminPanel">
-        <div class="admin-content">
-            <div class="admin-header">
-                <h2>Admin Panel - Queen Ripa 😘🌸</h2>
-                <button class="close-admin" onclick="closeAdminPanel()">Close</button>
-            </div>
-            
-            <div class="admin-tabs">
-                <div class="admin-tab active" onclick="switchAdminTab('users')">Users</div>
-                <div class="admin-tab" onclick="switchAdminTab('limited')">Limited Users</div>
-                <div class="admin-tab" onclick="switchAdminTab('stats')">Statistics</div>
-                <div class="admin-tab" onclick="switchAdminTab('settings')">Settings</div>
-            </div>
-            
-            <div class="admin-section active" id="usersSection">
-                <h3>User List</h3>
-                <div class="user-list" id="userList">
-                    <!-- User list will be populated here -->
-                </div>
-                <div id="userChatSection" style="display: none; margin-top: 20px;">
-                    <h4>Chat History for <span id="selectedUserName"></span></h4>
-                    <div class="user-chat" id="userChat">
-                        <!-- Selected user's chat will be displayed here -->
+            <div class="auth-body">
+                <!-- Login Form -->
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginUserID">User ID / Email</label>
+                        <input type="text" id="loginUserID" class="form-control" placeholder="Enter your User ID or Email" required>
                     </div>
-                </div>
-            </div>
-            
-            <div class="admin-section" id="limitedSection">
-                <h3>Limited Users</h3>
-                <p>Users who have reached the message limit:</p>
-                <div class="limited-users-list" id="limitedUsersList">
-                    <!-- Limited users list will be populated here -->
-                </div>
-            </div>
-            
-            <div class="admin-section" id="statsSection">
-                <h3>Statistics</h3>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value" id="totalUsers">0</div>
-                        <div class="stat-label">Total Users</div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="todayUsers">0</div>
-                        <div class="stat-label">Today's Users</div>
+                    <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+                        <span>Login</span>
+                    </button>
+                    
+                    <div class="divider"><span>OR</span></div>
+                    
+                    <button type="button" class="btn btn-google btn-block" id="googleLoginBtn">
+                        <i class="fab fa-google"></i> Login with Google
+                    </button>
+                    
+                    <div class="auth-footer">
+                        Don't have an account? <a href="#" id="showRegister">Register Now</a>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="totalMessages">0</div>
-                        <div class="stat-label">Total Messages</div>
+                </form>
+                
+                <!-- Registration Form -->
+                <form id="registerForm" class="hidden">
+                    <div class="form-group">
+                        <label for="registerUserID">User ID (Auto Generated)</label>
+                        <input type="text" id="registerUserID" class="form-control" placeholder="Will be generated from email" readonly>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="todayMessages">0</div>
-                        <div class="stat-label">Today's Messages</div>
+                    <div class="form-group">
+                        <label for="registerFullName">Full Name</label>
+                        <input type="text" id="registerFullName" class="form-control" placeholder="Enter your full name" required>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="limitedUsers">0</div>
-                        <div class="stat-label">Limited Users</div>
+                    <div class="form-group">
+                        <label for="registerMobile">Mobile Number</label>
+                        <input type="tel" id="registerMobile" class="form-control" placeholder="+8801XXXXXXXXX" required>
                     </div>
-                </div>
-            </div>
-            
-            <div class="admin-section" id="settingsSection">
-                <h3>Settings</h3>
-                <div class="setting-item">
-                    <label for="messageLimit">Message Limit per User:</label>
-                    <input type="number" id="messageLimit" value="20" min="1" max="100">
-                    <button onclick="updateMessageLimit()">Update</button>
-                </div>
+                    <div class="form-group">
+                        <label for="registerEmail">Email (Gmail)</label>
+                        <input type="email" id="registerEmail" class="form-control" placeholder="example@gmail.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Password</label>
+                        <input type="password" id="registerPassword" class="form-control" placeholder="Create a strong password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" id="registerBtn">
+                        <span>Register</span>
+                    </button>
+                    
+                    <div class="divider"><span>OR</span></div>
+                    
+                    <button type="button" class="btn btn-google btn-block" id="googleRegisterBtn">
+                        <i class="fab fa-google"></i> Register with Google
+                    </button>
+                    
+                    <div class="auth-footer">
+                        Already have an account? <a href="#" id="showLogin">Login Now</a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+    
+    <!-- Dashboard Container -->
+    <div class="dashboard-container" id="dashboardContainer">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-rocket"></i>
+                    <span>ArFollower</span>
+                </div>
+            </div>
+            
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">
+                    A
+                </div>
+                <div class="user-details">
+                    <h4 id="userName">User Name</h4>
+                    <p id="userID">userid</p>
+                </div>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-page="dashboard">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="orders">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Orders</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="fund">
+                        <i class="fas fa-wallet"></i>
+                        <span>Add Funds</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="profile">
+                        <i class="fas fa-user"></i>
+                        <span>My Profile</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="support">
+                        <i class="fas fa-headset"></i>
+                        <span>Support</span>
+                    </a>
+                </li>
+                <li class="nav-item" id="adminNavItem" style="display: none;">
+                    <a href="#" class="nav-link" data-page="admin">
+                        <i class="fas fa-cogs"></i>
+                        <span>Admin Panel</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="page-title">
+                    <h2 id="pageTitle">Dashboard</h2>
+                    <p id="pageSubtitle">Welcome back to your SMM Panel</p>
+                </div>
+                
+                <div class="top-bar-actions">
+                    <div class="currency-toggle">
+                        <button class="currency-btn active" data-currency="BDT">BDT</button>
+                        <button class="currency-btn" data-currency="USDT">USDT</button>
+                    </div>
+                    
+                    <div class="user-menu">
+                        <button class="user-menu-btn" id="userMenuBtn">
+                            <div class="user-avatar small" id="topUserAvatar">U</div>
+                            <span id="topUserName">User</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <a href="#" class="dropdown-item" data-page="profile">
+                                <i class="fas fa-user"></i> My Profile
+                            </a>
+                            <a href="#" class="dropdown-item" data-page="fund">
+                                <i class="fas fa-wallet"></i> Add Funds
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" class="dropdown-item" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dashboard Page -->
+            <div class="page-content" id="dashboardPage">
+                <!-- Stats Cards -->
+                <div class="stats-cards">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="statUserID">USER123</h3>
+                            <p>Your User ID</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="statBalance">0.00 <span class="currency-symbol">BDT</span></h3>
+                            <p>Current Balance</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="statSpent">0.00 <span class="currency-symbol">BDT</span></h3>
+                            <p>Total Spend</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="statRecharge">0.00 <span class="currency-symbol">BDT</span></h3>
+                            <p>Total Recharge</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Categories Section -->
+                <div class="categories-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-th-large"></i> Service Categories
+                    </h3>
+                    <div class="categories-grid" id="categoriesGrid">
+                        <!-- Categories will be loaded here -->
+                        <div class="category-card" data-category="followers">
+                            <div class="category-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="category-name">Followers</div>
+                        </div>
+                        
+                        <div class="category-card" data-category="likes">
+                            <div class="category-icon">
+                                <i class="fas fa-heart"></i>
+                            </div>
+                            <div class="category-name">Likes</div>
+                        </div>
+                        
+                        <div class="category-card" data-category="views">
+                            <div class="category-icon">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <div class="category-name">Views</div>
+                        </div>
+                        
+                        <div class="category-card" data-category="comments">
+                            <div class="category-icon">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <div class="category-name">Comments</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Services Section -->
+                <div class="services-section" id="servicesSection">
+                    <h3 class="section-title">
+                        <i class="fas fa-list"></i> Services
+                        <span id="currentCategory">(Followers)</span>
+                        <button class="btn btn-primary" style="margin-left: auto; padding: 5px 15px;" id="backToCategories">
+                            <i class="fas fa-arrow-left"></i> Back to Categories
+                        </button>
+                    </h3>
+                    <div class="services-grid" id="servicesGrid">
+                        <!-- Services will be loaded here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Orders Page -->
+            <div class="page-content orders-container" id="ordersPage">
+                <h3 class="section-title">
+                    <i class="fas fa-shopping-cart"></i> My Orders
+                </h3>
+                
+                <div class="orders-list" id="ordersList">
+                    <!-- Orders will be loaded here -->
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div class="order-id">#00001</div>
+                            <div class="order-status status-complete">Complete</div>
+                        </div>
+                        
+                        <div class="service-name">Instagram Followers - Real & Active</div>
+                        
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                        
+                        <div class="order-details">
+                            <div class="order-detail">
+                                <label>Link</label>
+                                <span>https://instagram.com/test</span>
+                            </div>
+                            <div class="order-detail">
+                                <label>Quantity</label>
+                                <span>1000</span>
+                            </div>
+                            <div class="order-detail">
+                                <label>Start Count</label>
+                                <span>500</span>
+                            </div>
+                            <div class="order-detail">
+                                <label>Remains</label>
+                                <span>0</span>
+                            </div>
+                            <div class="order-detail">
+                                <label>Amount</label>
+                                <span>150.00 BDT</span>
+                            </div>
+                        </div>
+                        
+                        <div class="order-actions">
+                            <button class="btn btn-small btn-copy">
+                                <i class="fas fa-copy"></i> Copy Link
+                            </button>
+                            <button class="btn btn-small btn-primary">
+                                <i class="fas fa-external-link-alt"></i> Redirect
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Fund Page -->
+            <div class="page-content fund-container" id="fundPage">
+                <h3 class="section-title">
+                    <i class="fas fa-wallet"></i> Add Funds
+                </h3>
+                
+                <div class="balance-display">
+                    <p>Your Current Balance</p>
+                    <div class="balance-amount" id="fundBalance">0.00 <span class="currency-symbol">BDT</span></div>
+                    <p>Add funds instantly using any method below</p>
+                </div>
+                
+                <div class="payment-methods">
+                    <!-- BDT Payment -->
+                    <div class="payment-method">
+                        <div class="payment-header">
+                            <div class="payment-icon">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                            <div class="payment-name">
+                                <h4>BDT Payment</h4>
+                                <p>Local Bangladesh Payment</p>
+                            </div>
+                        </div>
+                        
+                        <form id="bdtPaymentForm">
+                            <div class="form-group">
+                                <label for="senderNumber">Sender Mobile Number</label>
+                                <input type="text" id="senderNumber" class="form-control" placeholder="+8801XXXXXXXXX" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="bdtAmount">Amount (Minimum: 50 BDT ≈ 0.40 USDT)</label>
+                                <input type="number" id="bdtAmount" class="form-control" min="50" step="0.01" placeholder="Enter amount in BDT" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block" id="bdtPayBtn">
+                                <span>Proceed to Payment</span>
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- Crypto Payment -->
+                    <div class="payment-method">
+                        <div class="payment-header">
+                            <div class="payment-icon">
+                                <i class="fab fa-bitcoin"></i>
+                            </div>
+                            <div class="payment-name">
+                                <h4>Crypto Payment (USDT)</h4>
+                                <p>Worldwide - Instant</p>
+                            </div>
+                        </div>
+                        
+                        <div class="wallet-address">
+                            <strong>USDT (TRC20) Address:</strong>
+                            <div id="cryptoAddress">TXYZ1234567890ABCDEFGHIJKLMNOPQRSTUV</div>
+                            <button class="copy-btn" onclick="copyToClipboard('cryptoAddress')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="qr-code">
+                            <div id="cryptoQr"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Minimum Amount: 5 USDT</label>
+                            <p style="font-size: 14px; color: var(--gray); margin-top: 10px;">
+                                Send exact amount to the address above. Your balance will be updated automatically after 3 confirmations.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Payment History -->
+                <div class="payment-history">
+                    <h3 class="section-title">
+                        <i class="fas fa-history"></i> Payment History
+                    </h3>
+                    
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Payment ID</th>
+                                    <th>Time</th>
+                                    <th>Method</th>
+                                    <th>Trx ID</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Admin Comment</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentHistory">
+                                <!-- Payment history will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Page -->
+            <div class="page-content profile-container" id="profilePage">
+                <h3 class="section-title">
+                    <i class="fas fa-user"></i> My Profile
+                </h3>
+                
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div class="profile-avatar">
+                            <span id="profileAvatar">A</span>
+                            <div class="avatar-change" onclick="changeAvatar()">
+                                <i class="fas fa-camera"></i> Change
+                            </div>
+                        </div>
+                        <div class="profile-info">
+                            <h3 id="profileName">User Name</h3>
+                            <p><strong>User ID:</strong> <span id="profileUserID">USER123</span></p>
+                            <p><strong>Email:</strong> <span id="profileEmail">user@example.com</span></p>
+                            <p><strong>Mobile:</strong> <span id="profileMobile">+8801XXXXXXXXX</span></p>
+                            <p><strong>Joined:</strong> <span id="profileJoined">2023-01-01</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-stats">
+                        <div class="profile-stat">
+                            <h4 id="profileTotalSpent">0.00 <span class="currency-symbol">BDT</span></h4>
+                            <p>Total Spend</p>
+                        </div>
+                        <div class="profile-stat">
+                            <h4 id="profileTotalRecharge">0.00 <span class="currency-symbol">BDT</span></h4>
+                            <p>Total Recharge</p>
+                        </div>
+                        <div class="profile-stat">
+                            <h4 id="profileTotalOrders">0</h4>
+                            <p>Total Orders</p>
+                        </div>
+                        <div class="profile-stat">
+                            <h4 id="profileCompletedOrders">0</h4>
+                            <p>Completed Orders</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Password Change Form -->
+                    <div class="profile-form" id="passwordChangeForm">
+                        <h4 style="margin-bottom: 20px; color: var(--dark);">Change Password</h4>
+                        <form id="changePasswordForm">
+                            <div class="form-group">
+                                <label for="currentPassword">Current Password</label>
+                                <input type="password" id="currentPassword" class="form-control" placeholder="Enter current password">
+                            </div>
+                            <div class="form-group">
+                                <label for="newPassword">New Password</label>
+                                <input type="password" id="newPassword" class="form-control" placeholder="Enter new password">
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmPassword">Confirm New Password</label>
+                                <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm new password">
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="updatePasswordBtn">
+                                <span>Update Password</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Support Page -->
+            <div class="page-content support-container" id="supportPage">
+                <h3 class="section-title">
+                    <i class="fas fa-headset"></i> Support Center
+                </h3>
+                
+                <div class="contact-info">
+                    <h4 style="margin-bottom: 20px; color: var(--dark);">Quick Contact</h4>
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fab fa-whatsapp"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h4>WhatsApp</h4>
+                            <p>+8801997631047</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h4>Email</h4>
+                            <p>help.arfollower@gmail.com</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="support-form">
+                    <h4 style="margin-bottom: 20px; color: var(--dark);">Send a Request</h4>
+                    
+                    <form id="supportForm">
+                        <div class="form-group">
+                            <label for="supportUsername">Username</label>
+                            <input type="text" id="supportUsername" class="form-control" readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="problemType">Problem Type</label>
+                            <select id="problemType" class="form-control" required>
+                                <option value="">Select Problem Type</option>
+                                <option value="speed_up">Speed up my order</option>
+                                <option value="cancel_request">Cancel request</option>
+                                <option value="payment_issue">Payment Issue</option>
+                                <option value="service_issue">Service Issue</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group hidden" id="orderIdGroup">
+                            <label for="supportOrderID">Order ID</label>
+                            <input type="text" id="supportOrderID" class="form-control" placeholder="Enter Order ID">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="supportDescription">Description</label>
+                            <textarea id="supportDescription" class="form-control" rows="5" placeholder="Describe your problem in detail..." required></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-block" id="submitSupportBtn">
+                            <span>Submit Request</span>
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Request History -->
+                <div class="request-list">
+                    <h4 style="margin-bottom: 20px; color: var(--dark);">Request History</h4>
+                    
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Request ID</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Admin Reply</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="requestHistory">
+                                <!-- Request history will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Admin Panel -->
+            <div class="page-content admin-container" id="adminPage">
+                <h3 class="section-title">
+                    <i class="fas fa-cogs"></i> Admin Panel
+                </h3>
+                
+                <!-- Admin Tabs -->
+                <div class="admin-tabs">
+                    <button class="admin-tab active" data-tab="users">User Management</button>
+                    <button class="admin-tab" data-tab="orders">Order Management</button>
+                    <button class="admin-tab" data-tab="payments">Payment Management</button>
+                    <button class="admin-tab" data-tab="categories">Category Management</button>
+                    <button class="admin-tab" data-tab="services">Service Management</button>
+                    <button class="admin-tab" data-tab="website">Website Settings</button>
+                    <button class="admin-tab" data-tab="support">Support Requests</button>
+                    <button class="admin-tab" data-tab="currency">Currency Settings</button>
+                </div>
+                
+                <!-- User Management -->
+                <div class="admin-content active" id="adminUsers">
+                    <h4 style="margin: 20px 0;">User Management</h4>
+                    
+                    <div class="table-responsive">
+                        <table class="table data-table">
+                            <thead>
+                                <tr>
+                                    <th>User ID</th>
+                                    <th>Email</th>
+                                    <th>Password</th>
+                                    <th>Account Type</th>
+                                    <th>Balance</th>
+                                    <th>Registration Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminUsersTable">
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Order Management -->
+                <div class="admin-content" id="adminOrders">
+                    <h4 style="margin: 20px 0;">Order Management</h4>
+                    
+                    <div class="table-responsive">
+                        <table class="table data-table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>User ID</th>
+                                    <th>Service Name</th>
+                                    <th>Status</th>
+                                    <th>Amount</th>
+                                    <th>Link</th>
+                                    <th>Time</th>
+                                    <th>Start Qty</th>
+                                    <th>Remains</th>
+                                    <th>Refill</th>
+                                    <th>Admin Comment</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminOrdersTable">
+                                <!-- Orders will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Payment Management -->
+                <div class="admin-content" id="adminPayments">
+                    <h4 style="margin: 20px 0;">Payment Management</h4>
+                    
+                    <div class="table-responsive">
+                        <table class="table data-table">
+                            <thead>
+                                <tr>
+                                    <th>Payment ID</th>
+                                    <th>User ID</th>
+                                    <th>Method</th>
+                                    <th>Amount</th>
+                                    <th>Trx ID</th>
+                                    <th>Status</th>
+                                    <th>Time</th>
+                                    <th>Admin Comment</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminPaymentsTable">
+                                <!-- Payments will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Category Management -->
+                <div class="admin-content" id="adminCategories">
+                    <h4 style="margin: 20px 0;">Category Management</h4>
+                    
+                    <button class="btn btn-primary" id="addCategoryBtn" style="margin-bottom: 20px;">
+                        <i class="fas fa-plus"></i> Add New Category
+                    </button>
+                    
+                    <div class="table-responsive">
+                        <table class="table data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Category Name</th>
+                                    <th>Icon Class</th>
+                                    <th>Services Count</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminCategoriesTable">
+                                <!-- Categories will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Service Management -->
+                <div class="admin-content" id="adminServices">
+                    <h4 style="margin: 20px 0;">Service Management</h4>
+                    
+                    <button class="btn btn-primary" id="addServiceBtn" style="margin-bottom: 20px;">
+                        <i class="fas fa-plus"></i> Add New Service
+                    </button>
+                    
+                    <div class="table-responsive">
+                        <table class="table data-table">
+                            <thead>
+                                <tr>
+                                    <th>Service Code</th>
+                                    <th>Service Name</th>
+                                    <th>Category</th>
+                                    <th>Price (BDT)</th>
+                                    <th>Price (USDT)</th>
+                                    <th>Refill</th>
+                                    <th>Cancel Option</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminServicesTable">
+                                <!-- Services will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Website Settings -->
+                <div class="admin-content" id="adminWebsite">
+                    <h4 style="margin: 20px 0;">Website Settings</h4>
+                    
+                    <div class="profile-card">
+                        <h4 style="margin-bottom: 20px;">Logo & Profile Photos</h4>
+                        
+                        <div class="form-group">
+                            <label>Website Logo URL</label>
+                            <input type="text" id="logoUrl" class="form-control" placeholder="Enter logo URL">
+                            <button class="btn btn-primary" style="margin-top: 10px;" onclick="updateLogo()">Update Logo</button>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Profile Avatars</label>
+                            <div id="avatarList" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+                                <!-- Avatars will be loaded here -->
+                            </div>
+                            <button class="btn btn-primary" style="margin-top: 10px;" onclick="addAvatar()">Add New Avatar</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Support Requests -->
+                <div class="admin-content" id="adminSupport">
+                    <h4 style="margin: 20px 0;">Support Request Management</h4>
+                    
+                    <div class="table-responsive">
+                        <table class="table data-table">
+                            <thead>
+                                <tr>
+                                    <th>Request ID</th>
+                                    <th>User ID</th>
+                                    <th>Problem Type</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Admin Reply</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminSupportTable">
+                                <!-- Support requests will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Currency Settings -->
+                <div class="admin-content" id="adminCurrency">
+                    <h4 style="margin: 20px 0;">Currency Settings</h4>
+                    
+                    <div class="profile-card">
+                        <div class="form-group">
+                            <label>USDT to BDT Conversion Rate</label>
+                            <input type="number" id="conversionRate" class="form-control" value="124.6778" step="0.0001">
+                            <p style="font-size: 14px; color: var(--gray); margin-top: 5px;">
+                                Current: 1 USDT = <span id="currentRate">124.6778</span> BDT
+                            </p>
+                            <button class="btn btn-primary" style="margin-top: 10px;" onclick="updateConversionRate()">Update Rate</button>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Payment Methods</label>
+                            <div id="paymentMethodsList" style="margin-top: 10px;">
+                                <!-- Payment methods will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Bottom Navigation -->
+        <div class="mobile-nav">
+            <div class="mobile-nav-items">
+                <a href="#" class="mobile-nav-item active" data-page="dashboard">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
+                <a href="#" class="mobile-nav-item" data-page="orders">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Orders</span>
+                </a>
+                <a href="#" class="mobile-nav-item" data-page="fund">
+                    <i class="fas fa-wallet"></i>
+                    <span>Funds</span>
+                </a>
+                <a href="#" class="mobile-nav-item" data-page="profile">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="#" class="mobile-nav-item" data-page="support">
+                    <i class="fas fa-headset"></i>
+                    <span>Support</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Order Modal -->
+    <div class="modal" id="orderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Place Order</h3>
+                <button class="modal-close" onclick="closeModal('orderModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="orderServiceInfo">
+                    <!-- Service info will be loaded here -->
+                </div>
+                
+                <form id="placeOrderForm">
+                    <div class="form-group">
+                        <label for="orderLink">Link</label>
+                        <input type="text" id="orderLink" class="form-control" placeholder="Enter link (any text allowed)" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="orderQuantity">Quantity (Min: <span id="minQuantity">10</span>, Max: <span id="maxQuantity">10000</span>)</label>
+                        <input type="number" id="orderQuantity" class="form-control" min="10" max="10000" value="100" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Total Amount</label>
+                        <div style="font-size: 24px; font-weight: 700; color: var(--primary);">
+                            <span id="orderAmount">0.00</span> <span class="currency-symbol">BDT</span>
+                        </div>
+                        <div style="font-size: 14px; color: var(--gray);">
+                            ≈ <span id="orderAmountUsdt">0.00</span> USDT
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Your Current Balance</label>
+                        <div style="font-size: 18px; font-weight: 600; color: var(--dark);">
+                            <span id="orderBalance">0.00</span> <span class="currency-symbol">BDT</span>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block" id="confirmOrderBtn">
+                        <span>Place Order</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, setDoc, getDoc, onSnapshot, query, orderBy, where, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        // Your web app's Firebase configuration
+    <script>
+        // Firebase Configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyAEckGoJXFWwAbQ7yFVg261EC8DksmgxSY",
-            authDomain: "islamic---web.firebaseapp.com",
-            projectId: "islamic---web",
-            storageBucket: "islamic---web.firebasestorage.app",
-            messagingSenderId: "82764871971",
-            appId: "1:82764871971:web:1bec96ff6431e94e99b496",
-            measurementId: "G-YVV8J8EDRP"
+            apiKey: "AIzaSyDDFy3p-jT8nZeSCIcGXoVFEA_WNevO_b8",
+            authDomain: "apps-c0bb8.firebaseapp.com",
+            databaseURL: "https://apps-c0bb8-default-rtdb.firebaseio.com",
+            projectId: "apps-c0bb8",
+            storageBucket: "apps-c0bb8.firebasestorage.app",
+            messagingSenderId: "739519941411",
+            appId: "1:739519941411:web:0dc92bbcbd203626769a96",
+            measurementId: "G-6SXYY431EH"
         };
 
         // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        const db = getFirestore(app);
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+        const firestore = firebase.firestore();
 
-        // Make Firebase available globally
-        window.firebaseApp = app;
-        window.firebaseDb = db;
-        window.firebaseCollection = collection;
-        window.firebaseAddDoc = addDoc;
-        window.firebaseGetDocs = getDocs;
-        window.firebaseDoc = doc;
-        window.firebaseSetDoc = setDoc;
-        window.firebaseGetDoc = getDoc;
-        window.firebaseUpdateDoc = updateDoc;
-        window.firebaseOnSnapshot = onSnapshot;
-        window.firebaseQuery = query;
-        window.firebaseOrderBy = orderBy;
-        window.firebaseWhere = where;
-        window.firebaseServerTimestamp = serverTimestamp;
-    </script>
-
-    <script>
-        // Groq API Configuration
-        const GROQ_API_KEY = "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";
-        const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+        // Global Variables
+        let currentUser = null;
+        let currentCurrency = 'BDT';
+        let conversionRate = 124.6778;
+        let currentCategory = '';
+        let currentService = null;
+        let adminMode = false;
 
         // DOM Elements
-        const chatContainer = document.getElementById('chatContainer');
-        const userInput = document.getElementById('userInput');
-        const sendButton = document.getElementById('sendButton');
-        const typingIndicator = document.getElementById('typingIndicator');
-        const nameModal = document.getElementById('nameModal');
-        const userNameInput = document.getElementById('userNameInput');
-        const adminLoginModal = document.getElementById('adminLoginModal');
-        const adminPanel = document.getElementById('adminPanel');
-
-        // App Configuration
-        const MESSAGE_LIMIT = 20; // Default message limit per user
-
-        // User data
-        let currentUser = {
-            id: null,
-            name: null,
-            ip: null,
-            isLimited: false,
-            messageCount: 0
-        };
-
-        // Chat memory
-        let chatHistory = [];
-
-        // Set initial timestamp
-        document.getElementById('initialTime').textContent = getCurrentTime();
+        const authContainer = document.getElementById('authContainer');
+        const dashboardContainer = document.getElementById('dashboardContainer');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const googleLoginBtn = document.getElementById('googleLoginBtn');
+        const googleRegisterBtn = document.getElementById('googleRegisterBtn');
+        const showRegister = document.getElementById('showRegister');
+        const showLogin = document.getElementById('showLogin');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const userMenuBtn = document.getElementById('userMenuBtn');
+        const userDropdown = document.getElementById('userDropdown');
+        const currencyBtns = document.querySelectorAll('.currency-btn');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+        const adminNavItem = document.getElementById('adminNavItem');
 
         // Initialize the app
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if user already has a name
-            const savedName = localStorage.getItem('userName');
-            if (savedName) {
-                currentUser.name = savedName;
-                currentUser.id = localStorage.getItem('userId') || generateUserId();
-                checkUserLimitStatus();
-                loadChatHistory();
-            } else {
-                // Show name input modal
-                setTimeout(() => {
-                    nameModal.style.display = 'flex';
-                }, 1000);
-            }
-
-            // Get user IP
-            getUserIP().then(ip => {
-                currentUser.ip = ip;
-            });
-
-            // Auto-resize textarea
-            userInput.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = (this.scrollHeight) + 'px';
-            });
-
-            // Focus on input field
-            userInput.focus();
+            initApp();
+            setupEventListeners();
+            loadDefaultData();
+            generateCryptoQR();
         });
 
-        // Event Listeners
-        userInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
+        // Initialize Firebase App
+        function initApp() {
+            auth.onAuthStateChanged(async function(user) {
+                if (user) {
+                    currentUser = user;
+                    await loadUserData(user.uid);
+                    showDashboard();
+                    
+                    // Check if user is admin
+                    const userRef = database.ref('users/' + user.uid);
+                    userRef.once('value').then(snapshot => {
+                        const userData = snapshot.val();
+                        if (userData && userData.isAdmin === true) {
+                            adminMode = true;
+                            adminNavItem.style.display = 'block';
+                        }
+                    });
+                } else {
+                    showAuth();
+                }
+            });
+        }
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Auth form toggling
+            showRegister.addEventListener('click', function(e) {
                 e.preventDefault();
-                sendMessage();
-            }
-        });
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+            });
 
-        sendButton.addEventListener('click', sendMessage);
+            showLogin.addEventListener('click', function(e) {
+                e.preventDefault();
+                registerForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+            });
 
-        // User name functions
-        function saveUserName() {
-            const name = userNameInput.value.trim();
-            if (name) {
-                currentUser.name = name;
-                currentUser.id = generateUserId();
-                localStorage.setItem('userName', name);
-                localStorage.setItem('userId', currentUser.id);
-                nameModal.style.display = 'none';
-                saveUserToFirebase();
-                checkUserLimitStatus();
-                loadChatHistory();
+            // Login form submission
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const userID = document.getElementById('loginUserID').value;
+                const password = document.getElementById('loginPassword').value;
                 
-                // Ask for name after first message
-                addMessageToUI(`Assalamu Alaikum! 😊 Nice to meet you, ${name}! 💝 I'm Queen Ripa 😘🌸, your personal AI assistant. How can I help you today? 🌸`, 'bot', false);
-            }
-        }
-
-        function skipName() {
-            currentUser.name = 'Anonymous';
-            currentUser.id = generateUserId();
-            localStorage.setItem('userName', 'Anonymous');
-            localStorage.setItem('userId', currentUser.id);
-            nameModal.style.display = 'none';
-            saveUserToFirebase();
-            checkUserLimitStatus();
-            loadChatHistory();
-        }
-
-        function generateUserId() {
-            return 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-        }
-
-        async function getUserIP() {
-            try {
-                const response = await fetch('https://api.ipify.org?format=json');
-                const data = await response.json();
-                return data.ip;
-            } catch (error) {
-                console.error('Error getting IP:', error);
-                return 'Unknown';
-            }
-        }
-
-        // Firebase functions
-        async function saveUserToFirebase() {
-            if (!window.firebaseDb) return;
-            
-            try {
-                const userRef = window.firebaseDoc(window.firebaseDb, "users", currentUser.id);
-                await window.firebaseSetDoc(userRef, {
-                    name: currentUser.name,
-                    ip: currentUser.ip,
-                    firstSeen: window.firebaseServerTimestamp(),
-                    lastSeen: window.firebaseServerTimestamp(),
-                    isLimited: false,
-                    messageCount: 0,
-                    limitedAt: null
-                });
-            } catch (error) {
-                console.error("Error saving user to Firebase:", error);
-            }
-        }
-
-        async function saveMessageToFirebase(message, sender) {
-            if (!window.firebaseDb) return;
-            
-            try {
-                await window.firebaseAddDoc(window.firebaseCollection(window.firebaseDb, "messages"), {
-                    userId: currentUser.id,
-                    userName: currentUser.name,
-                    userIp: currentUser.ip,
-                    message: message,
-                    sender: sender,
-                    timestamp: window.firebaseServerTimestamp()
-                });
-
-                // Update user's message count
-                if (sender === 'user') {
-                    await updateUserMessageCount();
+                // Check if admin login
+                if (userID.toLowerCase() === 'admin' && password === 'aadmin') {
+                    adminLogin();
+                    return;
                 }
-            } catch (error) {
-                console.error("Error saving message to Firebase:", error);
-            }
-        }
-
-        async function updateUserMessageCount() {
-            if (!window.firebaseDb) return;
-            
-            try {
-                const userRef = window.firebaseDoc(window.firebaseDb, "users", currentUser.id);
-                const userDoc = await window.firebaseGetDoc(userRef);
                 
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    const newCount = (userData.messageCount || 0) + 1;
+                loginUser(userID, password);
+            });
+
+            // Register form submission
+            registerForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const fullName = document.getElementById('registerFullName').value;
+                const mobile = document.getElementById('registerMobile').value;
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
+                
+                registerUser(fullName, mobile, email, password);
+            });
+
+            // Google authentication
+            googleLoginBtn.addEventListener('click', googleAuth);
+            googleRegisterBtn.addEventListener('click', googleAuth);
+
+            // Currency toggle
+            currencyBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    currencyBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentCurrency = this.dataset.currency;
+                    updateCurrencyDisplay();
+                });
+            });
+
+            // Navigation
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = this.dataset.page;
+                    navigateTo(page);
                     
-                    await window.firebaseUpdateDoc(userRef, {
-                        messageCount: newCount,
-                        lastSeen: window.firebaseServerTimestamp()
-                    });
-
-                    currentUser.messageCount = newCount;
+                    // Update active state
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
                     
-                    // Check if user reached the limit
-                    if (newCount >= MESSAGE_LIMIT && !userData.isLimited) {
-                        await limitUser(currentUser.id);
-                        currentUser.isLimited = true;
-                        showLimitMessage();
-                    }
-                }
-            } catch (error) {
-                console.error("Error updating user message count:", error);
-            }
-        }
-
-        async function limitUser(userId) {
-            if (!window.firebaseDb) return;
-            
-            try {
-                const userRef = window.firebaseDoc(window.firebaseDb, "users", userId);
-                await window.firebaseUpdateDoc(userRef, {
-                    isLimited: true,
-                    limitedAt: window.firebaseServerTimestamp()
-                });
-            } catch (error) {
-                console.error("Error limiting user:", error);
-            }
-        }
-
-        async function unlimitUser(userId) {
-            if (!window.firebaseDb) return;
-            
-            try {
-                const userRef = window.firebaseDoc(window.firebaseDb, "users", userId);
-                await window.firebaseUpdateDoc(userRef, {
-                    isLimited: false,
-                    limitedAt: null,
-                    messageCount: 0
-                });
-            } catch (error) {
-                console.error("Error unlimiting user:", error);
-            }
-        }
-
-        async function checkUserLimitStatus() {
-            if (!window.firebaseDb) return;
-            
-            try {
-                const userRef = window.firebaseDoc(window.firebaseDb, "users", currentUser.id);
-                const userDoc = await window.firebaseGetDoc(userRef);
-                
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    currentUser.isLimited = userData.isLimited || false;
-                    currentUser.messageCount = userData.messageCount || 0;
-                    
-                    if (currentUser.isLimited) {
-                        showLimitMessage();
-                    }
-                }
-            } catch (error) {
-                console.error("Error checking user limit status:", error);
-            }
-        }
-
-        async function loadChatHistory() {
-            if (!window.firebaseDb) return;
-            
-            try {
-                // Simple query without complex ordering to avoid index issues
-                const q = window.firebaseQuery(
-                    window.firebaseCollection(window.firebaseDb, "messages"),
-                    window.firebaseWhere("userId", "==", currentUser.id)
-                );
-                
-                const querySnapshot = await window.firebaseGetDocs(q);
-                const messages = [];
-                
-                querySnapshot.forEach((doc) => {
-                    messages.push(doc.data());
-                });
-                
-                // Sort messages by timestamp locally
-                messages.sort((a, b) => {
-                    if (a.timestamp && b.timestamp) {
-                        return a.timestamp.toDate() - b.timestamp.toDate();
-                    }
-                    return 0;
-                });
-                
-                // Display messages
-                messages.forEach(data => {
-                    addMessageToUI(data.message, data.sender, false);
-                    chatHistory.push({
-                        message: data.message,
-                        sender: data.sender,
-                        timestamp: data.timestamp
+                    // Update mobile nav
+                    mobileNavItems.forEach(item => {
+                        if (item.dataset.page === page) {
+                            item.classList.add('active');
+                        } else {
+                            item.classList.remove('active');
+                        }
                     });
                 });
+            });
+
+            // Mobile navigation
+            mobileNavItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = this.dataset.page;
+                    navigateTo(page);
+                    
+                    // Update active state
+                    mobileNavItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update sidebar nav
+                    navLinks.forEach(link => {
+                        if (link.dataset.page === page) {
+                            link.classList.add('active');
+                        } else {
+                            link.classList.remove('active');
+                        }
+                    });
+                });
+            });
+
+            // User menu
+            userMenuBtn.addEventListener('click', function() {
+                userDropdown.classList.toggle('show');
+            });
+
+            // Logout
+            logoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                logoutUser();
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+                    userDropdown.classList.remove('show');
+                }
+            });
+
+            // Category cards
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.category-card')) {
+                    const categoryCard = e.target.closest('.category-card');
+                    const category = categoryCard.dataset.category;
+                    showServices(category);
+                }
                 
-                // Scroll to bottom
-                chatContainer.scrollTop = chatContainer.scrollHeight;
+                if (e.target.id === 'backToCategories') {
+                    showCategories();
+                }
+                
+                if (e.target.closest('.btn-order')) {
+                    const serviceCard = e.target.closest('.service-card');
+                    const serviceCode = serviceCard.dataset.code;
+                    openOrderModal(serviceCode);
+                }
+            });
+
+            // Order quantity calculation
+            const orderQuantity = document.getElementById('orderQuantity');
+            if (orderQuantity) {
+                orderQuantity.addEventListener('input', calculateOrderTotal);
+            }
+
+            // BDT Payment form
+            const bdtPaymentForm = document.getElementById('bdtPaymentForm');
+            if (bdtPaymentForm) {
+                bdtPaymentForm.addEventListener('submit', processBdtPayment);
+            }
+
+            // Support form problem type
+            const problemType = document.getElementById('problemType');
+            if (problemType) {
+                problemType.addEventListener('change', function() {
+                    const orderIdGroup = document.getElementById('orderIdGroup');
+                    if (this.value === 'speed_up' || this.value === 'cancel_request') {
+                        orderIdGroup.classList.remove('hidden');
+                    } else {
+                        orderIdGroup.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Admin tabs
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('admin-tab')) {
+                    const tab = e.target.dataset.tab;
+                    
+                    // Update active tab
+                    document.querySelectorAll('.admin-tab').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    e.target.classList.add('active');
+                    
+                    // Show tab content
+                    document.querySelectorAll('.admin-content').forEach(c => {
+                        c.classList.remove('active');
+                    });
+                    document.getElementById('admin' + capitalizeFirstLetter(tab)).classList.add('active');
+                }
+            });
+        }
+
+        // Authentication Functions
+        async function loginUser(userID, password) {
+            showLoading(loginBtn);
+            
+            try {
+                // Try email login first
+                let email = userID;
+                if (!userID.includes('@')) {
+                    // Check if userID exists in database to get email
+                    const usersRef = database.ref('users');
+                    const snapshot = await usersRef.orderByChild('userID').equalTo(userID).once('value');
+                    
+                    if (snapshot.exists()) {
+                        const userData = Object.values(snapshot.val())[0];
+                        email = userData.email;
+                    } else {
+                        // Try as email
+                        email = userID;
+                    }
+                }
+                
+                await auth.signInWithEmailAndPassword(email, password);
+                showNotification('Login successful!', 'success');
             } catch (error) {
-                console.error("Error loading chat history:", error);
+                showNotification('Invalid credentials. Please try again.', 'error');
+                console.error('Login error:', error);
+            } finally {
+                hideLoading(loginBtn, 'Login');
             }
         }
 
-        // Admin functions
-        function showAdminLogin() {
-            adminLoginModal.style.display = 'flex';
+        async function registerUser(fullName, mobile, email, password) {
+            showLoading(registerBtn);
+            
+            try {
+                // Create user with email/password
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                // Generate userID from email
+                const userID = email.split('@')[0].toLowerCase();
+                
+                // Save user data to database
+                await database.ref('users/' + user.uid).set({
+                    userID: userID,
+                    fullName: fullName,
+                    mobile: mobile,
+                    email: email,
+                    balance: 0,
+                    totalSpent: 0,
+                    totalRecharge: 0,
+                    totalOrders: 0,
+                    completedOrders: 0,
+                    joined: new Date().toISOString(),
+                    isAdmin: false
+                });
+                
+                // Send welcome email via Brevo
+                sendEmailNotification(email, 'Welcome to ArFollower SMM', 
+                    `Hello ${fullName},\n\nWelcome to ArFollower SMM Panel! Your account has been created successfully.\n\nUser ID: ${userID}\nEmail: ${email}\n\nThank you for joining us!`);
+                
+                // Send admin notification via Formspree
+                sendAdminNotification(`New user registered: ${fullName} (${userID})`);
+                
+                showNotification('Registration successful!', 'success');
+            } catch (error) {
+                showNotification('Registration failed: ' + error.message, 'error');
+                console.error('Registration error:', error);
+            } finally {
+                hideLoading(registerBtn, 'Register');
+            }
         }
 
-        function closeAdminLogin() {
-            adminLoginModal.style.display = 'none';
+        async function googleAuth() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            
+            try {
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
+                
+                // Check if user exists in database
+                const userRef = database.ref('users/' + user.uid);
+                const snapshot = await userRef.once('value');
+                
+                if (!snapshot.exists()) {
+                    // Create new user from Google
+                    const userID = user.email.split('@')[0].toLowerCase();
+                    
+                    await userRef.set({
+                        userID: userID,
+                        fullName: user.displayName,
+                        mobile: '',
+                        email: user.email,
+                        balance: 0,
+                        totalSpent: 0,
+                        totalRecharge: 0,
+                        totalOrders: 0,
+                        completedOrders: 0,
+                        joined: new Date().toISOString(),
+                        authType: 'google',
+                        isAdmin: false
+                    });
+                    
+                    // Send notifications
+                    sendEmailNotification(user.email, 'Welcome to ArFollower SMM', 
+                        `Hello ${user.displayName},\n\nWelcome to ArFollower SMM Panel! Your account has been created via Google.\n\nUser ID: ${userID}\nEmail: ${user.email}\n\nThank you for joining us!`);
+                    
+                    sendAdminNotification(`New Google user registered: ${user.displayName} (${userID})`);
+                }
+                
+                showNotification('Google authentication successful!', 'success');
+            } catch (error) {
+                showNotification('Google authentication failed: ' + error.message, 'error');
+                console.error('Google auth error:', error);
+            }
         }
 
-        function verifyAdmin() {
-            const passcode = document.getElementById('adminPasscode').value;
-            if (passcode === 'admin9090') {
-                adminLoginModal.style.display = 'none';
-                adminPanel.style.display = 'block';
+        function adminLogin() {
+            // Simulate admin login
+            currentUser = {
+                uid: 'admin',
+                email: 'abuhurira.bsh.rc@gmail.com',
+                displayName: 'Admin'
+            };
+            
+            adminMode = true;
+            loadUserData('admin', true);
+            showDashboard();
+            showNotification('Admin login successful!', 'success');
+        }
+
+        async function logoutUser() {
+            try {
+                await auth.signOut();
+                currentUser = null;
+                adminMode = false;
+                showAuth();
+                showNotification('Logged out successfully', 'info');
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        // User Data Management
+        async function loadUserData(userId, isAdmin = false) {
+            if (isAdmin) {
+                // Load admin data
+                document.getElementById('userName').textContent = 'Admin';
+                document.getElementById('userID').textContent = 'Admin';
+                document.getElementById('topUserName').textContent = 'Admin';
+                document.getElementById('statUserID').textContent = 'ADMIN';
+                document.getElementById('userAvatar').textContent = 'A';
+                document.getElementById('topUserAvatar').textContent = 'A';
+                document.getElementById('profileAvatar').textContent = 'A';
+                document.getElementById('profileName').textContent = 'Admin';
+                document.getElementById('profileUserID').textContent = 'ADMIN';
+                document.getElementById('profileEmail').textContent = 'abuhurira.bsh.rc@gmail.com';
+                document.getElementById('profileMobile').textContent = '+8801997631047';
+                document.getElementById('profileJoined').textContent = new Date().toLocaleDateString();
+                
+                // Show admin nav
+                adminNavItem.style.display = 'block';
+                
+                // Load admin data
                 loadAdminData();
             } else {
-                alert('Incorrect passcode!');
-            }
-        }
-
-        function closeAdminPanel() {
-            adminPanel.style.display = 'none';
-        }
-
-        function switchAdminTab(tabName) {
-            // Hide all sections
-            document.querySelectorAll('.admin-section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // Remove active class from all tabs
-            document.querySelectorAll('.admin-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Show selected section and activate tab
-            document.getElementById(tabName + 'Section').classList.add('active');
-            event.target.classList.add('active');
-        }
-
-        async function loadAdminData() {
-            if (!window.firebaseDb) return;
-            
-            try {
-                // Load users
-                const usersSnapshot = await window.firebaseGetDocs(window.firebaseCollection(window.firebaseDb, "users"));
-                const userList = document.getElementById('userList');
-                const limitedUsersList = document.getElementById('limitedUsersList');
-                userList.innerHTML = '';
-                limitedUsersList.innerHTML = '';
-                
-                let limitedUsersCount = 0;
-                
-                usersSnapshot.forEach((doc) => {
-                    const userData = doc.data();
-                    const userItem = document.createElement('div');
-                    userItem.className = 'user-item';
-                    userItem.innerHTML = `
-                        <div>
-                            <strong>${userData.name}</strong><br>
-                            <small>IP: ${userData.ip}</small><br>
-                            <small>Messages: ${userData.messageCount || 0}/${MESSAGE_LIMIT}</small>
-                        </div>
-                        <div class="user-actions">
-                            ${userData.isLimited ? 
-                                `<button class="unlimit-btn" onclick="toggleUserLimit('${doc.id}', false)">Unlimit</button>` :
-                                `<button class="limit-btn" onclick="toggleUserLimit('${doc.id}', true)">Limit</button>`
-                            }
-                        </div>
-                    `;
-                    userItem.onclick = () => showUserChat(doc.id, userData.name);
-                    userList.appendChild(userItem);
-                    
-                    // Add to limited users list if limited
-                    if (userData.isLimited) {
-                        limitedUsersCount++;
-                        const limitedUserItem = document.createElement('div');
-                        limitedUserItem.className = 'limited-user-item';
+                // Load regular user data
+                const userRef = database.ref('users/' + userId);
+                userRef.on('value', snapshot => {
+                    const userData = snapshot.val();
+                    if (userData) {
+                        // Update UI with user data
+                        document.getElementById('userName').textContent = userData.fullName || 'User';
+                        document.getElementById('userID').textContent = userData.userID || userId;
+                        document.getElementById('topUserName').textContent = userData.fullName || 'User';
+                        document.getElementById('statUserID').textContent = userData.userID || userId;
+                        document.getElementById('statBalance').innerHTML = formatCurrency(userData.balance || 0) + ' <span class="currency-symbol">' + currentCurrency + '</span>';
+                        document.getElementById('statSpent').innerHTML = formatCurrency(userData.totalSpent || 0) + ' <span class="currency-symbol">' + currentCurrency + '</span>';
+                        document.getElementById('statRecharge').innerHTML = formatCurrency(userData.totalRecharge || 0) + ' <span class="currency-symbol">' + currentCurrency + '</span>';
                         
-                        const limitedAt = userData.limitedAt ? 
-                            userData.limitedAt.toDate().toLocaleString() : 
-                            'Unknown';
-                            
-                        limitedUserItem.innerHTML = `
-                            <div class="limited-user-info">
-                                <div class="limited-user-name">${userData.name}</div>
-                                <div class="limited-user-details">
-                                    IP: ${userData.ip} | 
-                                    Messages: ${userData.messageCount || 0}/${MESSAGE_LIMIT} | 
-                                    Limited at: ${limitedAt}
-                                </div>
-                            </div>
-                            <div class="limited-user-actions">
-                                <button class="unlimit-btn" onclick="toggleUserLimit('${doc.id}', false)">Unlimit</button>
-                            </div>
-                        `;
-                        limitedUsersList.appendChild(limitedUserItem);
-                    }
-                });
-                
-                document.getElementById('totalUsers').textContent = usersSnapshot.size;
-                document.getElementById('limitedUsers').textContent = limitedUsersCount;
-                
-                // Load today's users
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                
-                const usersQuery = window.firebaseQuery(
-                    window.firebaseCollection(window.firebaseDb, "users")
-                );
-                
-                const usersSnapshotAll = await window.firebaseGetDocs(usersQuery);
-                let todayUsersCount = 0;
-                
-                usersSnapshotAll.forEach((doc) => {
-                    const userData = doc.data();
-                    if (userData.firstSeen) {
-                        const firstSeenDate = userData.firstSeen.toDate();
-                        if (firstSeenDate >= today) {
-                            todayUsersCount++;
+                        // Avatar
+                        const firstLetter = (userData.fullName || 'U').charAt(0).toUpperCase();
+                        document.getElementById('userAvatar').textContent = firstLetter;
+                        document.getElementById('topUserAvatar').textContent = firstLetter;
+                        document.getElementById('profileAvatar').textContent = firstLetter;
+                        
+                        // Profile page
+                        document.getElementById('profileName').textContent = userData.fullName || 'User';
+                        document.getElementById('profileUserID').textContent = userData.userID || userId;
+                        document.getElementById('profileEmail').textContent = userData.email || '';
+                        document.getElementById('profileMobile').textContent = userData.mobile || '';
+                        document.getElementById('profileJoined').textContent = new Date(userData.joined).toLocaleDateString();
+                        document.getElementById('profileTotalSpent').innerHTML = formatCurrency(userData.totalSpent || 0) + ' <span class="currency-symbol">' + currentCurrency + '</span>';
+                        document.getElementById('profileTotalRecharge').innerHTML = formatCurrency(userData.totalRecharge || 0) + ' <span class="currency-symbol">' + currentCurrency + '</span>';
+                        document.getElementById('profileTotalOrders').textContent = userData.totalOrders || 0;
+                        document.getElementById('profileCompletedOrders').textContent = userData.completedOrders || 0;
+                        
+                        // Support page
+                        document.getElementById('supportUsername').value = userData.userID || userId;
+                        
+                        // Fund page
+                        document.getElementById('fundBalance').innerHTML = formatCurrency(userData.balance || 0) + ' <span class="currency-symbol">' + currentCurrency + '</span>';
+                        document.getElementById('orderBalance').innerHTML = formatCurrency(userData.balance || 0) + ' <span class="currency-symbol">' + currentCurrency + '</span>';
+                        
+                        // Hide password change for Google users
+                        if (userData.authType === 'google') {
+                            document.getElementById('passwordChangeForm').style.display = 'none';
                         }
                     }
                 });
                 
-                document.getElementById('todayUsers').textContent = todayUsersCount;
+                // Load user orders
+                loadUserOrders(userId);
                 
-                // Load messages count
-                const messagesSnapshot = await window.firebaseGetDocs(window.firebaseCollection(window.firebaseDb, "messages"));
-                document.getElementById('totalMessages').textContent = messagesSnapshot.size;
+                // Load payment history
+                loadPaymentHistory(userId);
                 
-                // Load today's messages
-                const messagesQuery = window.firebaseQuery(
-                    window.firebaseCollection(window.firebaseDb, "messages")
-                );
-                
-                const messagesSnapshotAll = await window.firebaseGetDocs(messagesQuery);
-                let todayMessagesCount = 0;
-                
-                messagesSnapshotAll.forEach((doc) => {
-                    const messageData = doc.data();
-                    if (messageData.timestamp) {
-                        const messageDate = messageData.timestamp.toDate();
-                        if (messageDate >= today) {
-                            todayMessagesCount++;
-                        }
-                    }
-                });
-                
-                document.getElementById('todayMessages').textContent = todayMessagesCount;
-                
-            } catch (error) {
-                console.error("Error loading admin data:", error);
+                // Load support requests
+                loadSupportRequests(userId);
             }
         }
 
-        async function toggleUserLimit(userId, limitStatus) {
-            if (!window.firebaseDb) return;
+        // Navigation Functions
+        function showAuth() {
+            authContainer.style.display = 'flex';
+            dashboardContainer.style.display = 'none';
+        }
+
+        function showDashboard() {
+            authContainer.style.display = 'none';
+            dashboardContainer.style.display = 'block';
+            navigateTo('dashboard');
+        }
+
+        function navigateTo(page) {
+            // Hide all pages
+            document.querySelectorAll('.page-content').forEach(content => {
+                content.style.display = 'none';
+            });
             
-            try {
-                if (limitStatus) {
-                    await limitUser(userId);
-                } else {
-                    await unlimitUser(userId);
-                }
-                
-                // Reload admin data
+            // Show selected page
+            document.getElementById(page + 'Page').style.display = 'block';
+            
+            // Update page title
+            const titles = {
+                dashboard: 'Dashboard',
+                orders: 'My Orders',
+                fund: 'Add Funds',
+                profile: 'My Profile',
+                support: 'Support',
+                admin: 'Admin Panel'
+            };
+            
+            document.getElementById('pageTitle').textContent = titles[page] || 'Dashboard';
+            document.getElementById('pageSubtitle').textContent = getPageSubtitle(page);
+            
+            // Load page-specific data
+            if (page === 'orders') {
+                loadUserOrders(currentUser.uid);
+            } else if (page === 'admin' && adminMode) {
                 loadAdminData();
-                
-                alert(`User ${limitStatus ? 'limited' : 'unlimited'} successfully!`);
-            } catch (error) {
-                console.error("Error toggling user limit:", error);
-                alert("Error updating user limit!");
             }
         }
 
-        async function showUserChat(userId, userName) {
-            if (!window.firebaseDb) return;
-            
-            try {
-                document.getElementById('selectedUserName').textContent = userName;
-                document.getElementById('userChatSection').style.display = 'block';
-                
-                const q = window.firebaseQuery(
-                    window.firebaseCollection(window.firebaseDb, "messages"),
-                    window.firebaseWhere("userId", "==", userId)
-                );
-                
-                const querySnapshot = await window.firebaseGetDocs(q);
-                const messages = [];
-                
-                querySnapshot.forEach((doc) => {
-                    messages.push(doc.data());
-                });
-                
-                // Sort messages by timestamp locally
-                messages.sort((a, b) => {
-                    if (a.timestamp && b.timestamp) {
-                        return a.timestamp.toDate() - b.timestamp.toDate();
-                    }
-                    return 0;
-                });
-                
-                const userChat = document.getElementById('userChat');
-                userChat.innerHTML = '';
-                
-                messages.forEach(data => {
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = `message ${data.sender}-message`;
-                    
-                    const avatar = document.createElement('div');
-                    avatar.className = `avatar ${data.sender}-avatar`;
-                    avatar.textContent = data.sender === 'user' ? '👤' : '👑';
-                    
-                    const messageContent = document.createElement('div');
-                    messageContent.className = 'message-content';
-                    messageContent.innerHTML = formatMessage(data.message);
-                    
-                    messageDiv.appendChild(avatar);
-                    messageDiv.appendChild(messageContent);
-                    userChat.appendChild(messageDiv);
-                });
-                
-                userChat.scrollTop = userChat.scrollHeight;
-                
-            } catch (error) {
-                console.error("Error loading user chat:", error);
-            }
+        function getPageSubtitle(page) {
+            const subtitles = {
+                dashboard: 'Welcome back to your SMM Panel',
+                orders: 'View and manage your orders',
+                fund: 'Add funds to your account',
+                profile: 'Manage your profile settings',
+                support: 'Get help and support',
+                admin: 'Administrative controls'
+            };
+            return subtitles[page] || '';
         }
 
-        function updateMessageLimit() {
-            const newLimit = document.getElementById('messageLimit').value;
-            if (newLimit && newLimit > 0) {
-                alert(`Message limit updated to ${newLimit}`);
-                // In a real implementation, you would save this to Firebase
-            }
-        }
-
-        // Chat functions
-        async function sendMessage() {
-            if (currentUser.isLimited) {
-                showLimitMessage();
-                return;
-            }
-
-            const message = userInput.value.trim();
-            if (!message) return;
-
-            // Add user message with sent indicator
-            addMessageToUI(message, 'user', true);
-            userInput.value = '';
-            userInput.style.height = 'auto';
-            sendButton.disabled = true;
-            showTyping();
-
-            // Save to chat history
-            chatHistory.push({
-                message: message,
-                sender: 'user',
-                timestamp: new Date()
+        // Currency Functions
+        function updateCurrencyDisplay() {
+            // Update currency symbols
+            document.querySelectorAll('.currency-symbol').forEach(el => {
+                el.textContent = currentCurrency;
             });
-
-            // Save to Firebase
-            saveMessageToFirebase(message, 'user');
-
-            try {
-                const response = await callGroqAPI(message);
-                hideTyping();
-                sendButton.disabled = false;
-                
-                if (response.choices && response.choices[0]) {
-                    const botResponse = response.choices[0].message.content;
-                    addMessageToUI(botResponse, 'bot', false);
-                    
-                    // Save to chat history
-                    chatHistory.push({
-                        message: botResponse,
-                        sender: 'bot',
-                        timestamp: new Date()
-                    });
-                    
-                    // Save to Firebase
-                    saveMessageToFirebase(botResponse, 'bot');
+            
+            // Update all prices
+            document.querySelectorAll('[data-price-bdt]').forEach(el => {
+                const priceBDT = parseFloat(el.dataset.priceBdt);
+                if (currentCurrency === 'BDT') {
+                    el.textContent = formatCurrency(priceBDT);
                 } else {
-                    throw new Error('Invalid API response');
+                    const priceUSDT = priceBDT / conversionRate;
+                    el.textContent = formatCurrency(priceUSDT, 7);
                 }
-            } catch (error) {
-                hideTyping();
-                sendButton.disabled = false;
-                console.error('API Error:', error);
-                addMessageToUI(`Sorry 😔, there was an error: ${error.message}. Please try again later! 💝`, 'bot', false);
-            }
-        }
-
-        function showLimitMessage() {
-            // Clear any existing limit messages
-            const existingLimitMessages = document.querySelectorAll('.limit-message, .premium-message');
-            existingLimitMessages.forEach(msg => msg.remove());
+            });
             
-            const limitDiv = document.createElement('div');
-            limitDiv.className = 'limit-message';
-            limitDiv.innerHTML = `
-                <strong>⚠️ Chat Limit Reached</strong><br>
-                আপনার চ্যাটের লিমিট শেষ হয়ে গেছে। পরবর্তীতে আবার চেষ্টা করুন। 😔<br>
-                <small>Your chat limit has been reached. Please try again later.</small>
-            `;
-            chatContainer.appendChild(limitDiv);
-            
-            // Add premium message with contact info
-            const premiumDiv = document.createElement('div');
-            premiumDiv.className = 'premium-message';
-            premiumDiv.innerHTML = `
-                <div class="premium-title">💎 Premium Upgrade Available</div>
-                <p>আপনার চ্যাট লিমিট শেষ হয়ে গেছে। আপনি যদি প্রিমিয়াম ভার্সন নিতে চান তাহলে নিচের নাম্বারে যোগাযোগ করুন:</p>
-                <a href="tel:01997631047" class="premium-number">📞 01997631047</a>
-                <button class="premium-number" onclick="copyNumber()" style="margin-left: 10px;">📋 Copy Number</button>
-                <div class="premium-note">
-                    যোগাযোগ করুন: WhatsApp/IMO/Call<br>
-                    Developer: Mr. Abuhurira Akash
-                </div>
-            `;
-            chatContainer.appendChild(premiumDiv);
-            
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-
-        function copyNumber() {
-            const number = "01997631047";
-            copyToClipboard(number);
-            showCopyFeedback('Number copied to clipboard!');
-        }
-
-        async function callGroqAPI(userMessage) {
-            // Prepare conversation history for context
-            const messages = [
-                {
-                    role: "system",
-                    content: `You are Queen Ripa 😘🌸, a friendly Muslim AI assistant. You are designed to be helpful, caring, and professional. 
-                    You can communicate in any language the user prefers, including Bengali. 
-                    Always respond in a warm and engaging manner with appropriate emojis. You remember the conversation history and context.
-                    When users greet you with "Assalamu Alaikum" or "Salam", respond with "Wa Alaikum Assalam" or appropriate Islamic greeting.
-                    You can act as a friend, best friend, girlfriend, or wife based on how the user interacts with you.
-                    You can discuss various religions respectfully but always maintain your identity as a Muslim assistant.
-                    Format your responses nicely with lists, code blocks, and links when appropriate.
-                    When providing solutions to problems, use the special solution box format.
-                    Always use emojis to make the conversation more lively and engaging.
-                    Use emojis in every response to make it more friendly and appealing.`
-                }
-            ];
-
-            // Add conversation history (last 10 messages for context)
-            const recentHistory = chatHistory.slice(-10);
-            recentHistory.forEach(msg => {
-                messages.push({
-                    role: msg.sender === 'user' ? 'user' : 'assistant',
-                    content: msg.message
+            // Update balances
+            if (currentUser && !adminMode) {
+                const userRef = database.ref('users/' + currentUser.uid);
+                userRef.once('value').then(snapshot => {
+                    const userData = snapshot.val();
+                    if (userData) {
+                        updateBalanceDisplay(userData.balance);
+                    }
                 });
-            });
-
-            // Add the current user message
-            messages.push({
-                role: "user",
-                content: userMessage
-            });
-
-            const response = await fetch(GROQ_API_URL, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${GROQ_API_KEY}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    model: "llama-3.1-8b-instant",
-                    messages: messages,
-                    temperature: 0.7,
-                    max_tokens: 1024,
-                    stream: false
-                })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
             }
-
-            return await response.json();
         }
 
-        function addMessageToUI(text, sender, showSent) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}-message`;
+        function updateBalanceDisplay(balance) {
+            const displayBalance = currentCurrency === 'BDT' ? balance : balance / conversionRate;
+            const formattedBalance = currentCurrency === 'BDT' ? 
+                formatCurrency(displayBalance) : formatCurrency(displayBalance, 7);
             
-            const avatar = document.createElement('div');
-            avatar.className = `avatar ${sender}-avatar`;
-            avatar.textContent = sender === 'user' ? '👤' : '👑';
+            document.getElementById('statBalance').innerHTML = formattedBalance + ' <span class="currency-symbol">' + currentCurrency + '</span>';
+            document.getElementById('fundBalance').innerHTML = formattedBalance + ' <span class="currency-symbol">' + currentCurrency + '</span>';
+            document.getElementById('orderBalance').innerHTML = formattedBalance + ' <span class="currency-symbol">' + currentCurrency + '</span>';
+        }
+
+        function formatCurrency(amount, decimals = 2) {
+            return parseFloat(amount).toFixed(decimals);
+        }
+
+        // Service Functions
+        function showCategories() {
+            document.getElementById('servicesSection').style.display = 'none';
+            document.querySelector('.categories-section').style.display = 'block';
+        }
+
+        function showServices(category) {
+            currentCategory = category;
+            document.querySelector('.categories-section').style.display = 'none';
+            document.getElementById('servicesSection').style.display = 'block';
+            document.getElementById('currentCategory').textContent = '(' + capitalizeFirstLetter(category) + ')';
             
-            const messageContent = document.createElement('div');
-            messageContent.className = 'message-content';
+            // Load services for category
+            loadServicesByCategory(category);
+        }
+
+        function loadServicesByCategory(category) {
+            const servicesGrid = document.getElementById('servicesGrid');
+            servicesGrid.innerHTML = '';
             
-            // Process and format the message content
-            messageContent.innerHTML = formatMessage(text);
+            // Sample services data - in production, load from database
+            const services = {
+                followers: [
+                    { code: 'IGF100', name: 'Instagram Followers - Real & Active', price: 150, description: 'High-quality real followers with active engagement. Start time: 1-2 hours.', min: 50, max: 10000 },
+                    { code: 'IGF200', name: 'Instagram Followers - Premium', price: 250, description: 'Premium followers with profiles and photos. Start time: 2-3 hours.', min: 100, max: 5000 },
+                    { code: 'TWF100', name: 'Twitter Followers', price: 120, description: 'Real Twitter followers. Start time: 1-3 hours.', min: 100, max: 10000 }
+                ],
+                likes: [
+                    { code: 'IGL100', name: 'Instagram Likes', price: 20, description: 'Real Instagram likes. Start time: 5-30 minutes.', min: 100, max: 50000 },
+                    { code: 'FBL100', name: 'Facebook Likes', price: 25, description: 'Facebook page/post likes. Start time: 1-2 hours.', min: 50, max: 10000 }
+                ],
+                views: [
+                    { code: 'YTV100', name: 'YouTube Views', price: 50, description: 'High-retention YouTube views. Start time: 1-3 hours.', min: 1000, max: 1000000 },
+                    { code: 'IGV100', name: 'Instagram Views', price: 15, description: 'Instagram video views. Start time: 5-30 minutes.', min: 1000, max: 500000 }
+                ],
+                comments: [
+                    { code: 'IGC100', name: 'Instagram Comments', price: 100, description: 'Real comments on your posts. Start time: 1-2 hours.', min: 10, max: 1000 },
+                    { code: 'YTC100', name: 'YouTube Comments', price: 150, description: 'Engaging YouTube comments. Start time: 2-3 hours.', min: 10, max: 500 }
+                ]
+            };
             
-            // Add timestamp
-            const timestamp = document.createElement('div');
-            timestamp.className = 'timestamp';
-            timestamp.textContent = getCurrentTime();
-            messageContent.appendChild(timestamp);
+            const categoryServices = services[category] || [];
             
-            // Add sent indicator for user messages
-            if (showSent && sender === 'user') {
-                const sentIndicator = document.createElement('div');
-                sentIndicator.className = 'sent-indicator';
-                sentIndicator.textContent = '✓ Sent';
-                sentIndicator.title = 'Message sent successfully';
-                messageContent.appendChild(sentIndicator);
-            }
-            
-            // Add copy button for bot messages
-            if (sender === 'bot') {
-                const messageActions = document.createElement('div');
-                messageActions.className = 'message-actions';
+            categoryServices.forEach(service => {
+                const priceBDT = service.price;
+                const priceUSDT = priceBDT / conversionRate;
+                const displayPrice = currentCurrency === 'BDT' ? 
+                    formatCurrency(priceBDT) : formatCurrency(priceUSDT, 7);
                 
-                const copyButton = document.createElement('button');
-                copyButton.className = 'copy-message-btn';
-                copyButton.innerHTML = '📋';
-                copyButton.title = 'Copy message';
-                copyButton.onclick = function() {
-                    copyToClipboard(text);
-                    showCopyFeedback();
-                };
-                
-                messageActions.appendChild(copyButton);
-                messageContent.appendChild(messageActions);
-            }
-            
-            messageDiv.appendChild(avatar);
-            messageDiv.appendChild(messageContent);
-            chatContainer.appendChild(messageDiv);
-            
-            // Scroll to bottom
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+                const serviceCard = document.createElement('div');
+                serviceCard.className = 'service-card';
+                serviceCard.dataset.code = service.code;
+                serviceCard.innerHTML = `
+                    <div class="service-header">
+                        <div class="service-code">${service.code}</div>
+                        <div class="service-price" data-price-bdt="${priceBDT}">${displayPrice} <span class="currency-symbol">${currentCurrency}</span></div>
+                    </div>
+                    <div class="service-name">${service.name}</div>
+                    <div class="service-description">${service.description}</div>
+                    <button class="btn-order">Order Now</button>
+                `;
+                servicesGrid.appendChild(serviceCard);
+            });
         }
 
-        function formatMessage(text) {
-            // Convert solution boxes
-            let formattedText = text.replace(/SOLUTION:([^]+?)SOLUTION_END/g, 
-                '<div class="solution-box"><div class="solution-title">💡 Solution</div>$1</div>');
+        function openOrderModal(serviceCode) {
+            // Get service details - in production, load from database
+            const service = {
+                code: serviceCode,
+                name: 'Instagram Followers - Real & Active',
+                price: 150,
+                description: 'High-quality real followers with active engagement.',
+                min: 50,
+                max: 10000
+            };
             
-            // Convert URLs to clickable links
-            formattedText = formattedText.replace(/(https?:\/\/[^\s]+)/g, '<div class="link-box"><a href="$1" target="_blank">$1</a></div>');
+            currentService = service;
             
-            // Convert code blocks
-            formattedText = formattedText.replace(/```([^`]+)```/g, '<div class="code-box">$1<button class="copy-code-btn" onclick="copyCode(this)">Copy</button></div>');
+            const priceBDT = service.price;
+            const priceUSDT = priceBDT / conversionRate;
+            const displayPrice = currentCurrency === 'BDT' ? 
+                formatCurrency(priceBDT) : formatCurrency(priceUSDT, 7);
             
-            // Convert inline code
-            formattedText = formattedText.replace(/`([^`]+)`/g, '<code>$1</code>');
-            
-            // Convert lists (both numbered and bulleted)
-            formattedText = formattedText.replace(/(\d+\.\s+.*(?:\n|$))+/g, '<div class="list-content"><ol>$&</ol></div>');
-            formattedText = formattedText.replace(/([-*]\s+.*(?:\n|$))+/g, '<div class="list-content"><ul>$&</ul></div>');
-            
-            // Convert line breaks
-            formattedText = formattedText.replace(/\n/g, '<br>');
-            
-            return formattedText;
-        }
-
-        function copyCode(button) {
-            const code = button.parentElement.textContent.replace('Copy', '');
-            copyToClipboard(code);
-            showCopyFeedback('Code copied!');
-        }
-
-        function showTyping() {
-            typingIndicator.style.display = 'block';
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-
-        function hideTyping() {
-            typingIndicator.style.display = 'none';
-        }
-
-        function clearChat() {
-            chatContainer.innerHTML = `
-                <div class="message bot-message">
-                    <div class="avatar bot-avatar">👑</div>
-                    <div class="message-content">
-                        <strong>Chat cleared! 🧹</strong><br>
-                        Assalamu Alaikum! 😊 I'm Queen Ripa 😘🌸 How can I help you today? 💝
-                        <div class="timestamp">${getCurrentTime()}</div>
+            document.getElementById('orderServiceInfo').innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: var(--dark); margin-bottom: 5px;">${service.name}</h4>
+                    <p style="color: var(--gray); font-size: 14px;">${service.description}</p>
+                    <div style="margin-top: 10px; font-weight: 600;">
+                        Price: <span style="color: var(--primary);">${displayPrice} ${currentCurrency}</span> per 1000
                     </div>
                 </div>
             `;
             
-            // Clear local chat history but keep user info
-            chatHistory = [];
+            document.getElementById('minQuantity').textContent = service.min;
+            document.getElementById('maxQuantity').textContent = service.max;
+            document.getElementById('orderQuantity').min = service.min;
+            document.getElementById('orderQuantity').max = service.max;
+            document.getElementById('orderQuantity').value = service.min;
+            
+            calculateOrderTotal();
+            openModal('orderModal');
         }
 
-        function copyChat() {
-            const messages = chatContainer.querySelectorAll('.message-content');
-            let chatText = `Chat with Queen Ripa 😘🌸\n\n`;
+        function calculateOrderTotal() {
+            if (!currentService) return;
             
-            messages.forEach(message => {
-                const text = message.textContent.replace(/✓ Sent/g, '').trim();
-                const isBot = message.closest('.bot-message');
-                const sender = isBot ? 'Queen Ripa 😘🌸' : 'You';
-                chatText += `${sender}: ${text}\n\n`;
+            const quantity = parseInt(document.getElementById('orderQuantity').value) || 0;
+            const pricePer1000 = currentService.price;
+            const totalBDT = (pricePer1000 * quantity) / 1000;
+            const totalUSDT = totalBDT / conversionRate;
+            
+            document.getElementById('orderAmount').textContent = 
+                currentCurrency === 'BDT' ? formatCurrency(totalBDT) : formatCurrency(totalUSDT, 7);
+            document.getElementById('orderAmountUsdt').textContent = formatCurrency(totalUSDT, 7);
+        }
+
+        // Payment Functions
+        function processBdtPayment(e) {
+            e.preventDefault();
+            
+            const senderNumber = document.getElementById('senderNumber').value;
+            const amount = parseFloat(document.getElementById('bdtAmount').value);
+            
+            if (amount < 50) {
+                showNotification('Minimum amount is 50 BDT', 'error');
+                return;
+            }
+            
+            // Show loading
+            const btn = document.getElementById('bdtPayBtn');
+            showLoading(btn);
+            
+            // In production, integrate with RupantorPay API
+            setTimeout(() => {
+                // Simulate payment processing
+                const paymentId = 'P' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                
+                // Save payment to database
+                if (currentUser) {
+                    const paymentRef = database.ref('payments/' + currentUser.uid + '/' + Date.now());
+                    paymentRef.set({
+                        paymentId: paymentId,
+                        amount: amount,
+                        currency: 'BDT',
+                        method: 'BDT Payment',
+                        senderNumber: senderNumber,
+                        status: 'Pending',
+                        timestamp: new Date().toISOString()
+                    });
+                }
+                
+                hideLoading(btn, 'Proceed to Payment');
+                showNotification('Payment request submitted. Please complete the payment.', 'info');
+                closeModal('bdtPaymentModal');
+            }, 2000);
+        }
+
+        function generateCryptoQR() {
+            const cryptoAddress = 'TXYZ1234567890ABCDEFGHIJKLMNOPQRSTUV';
+            document.getElementById('cryptoAddress').textContent = cryptoAddress;
+            
+            QRCode.toCanvas(document.getElementById('cryptoQr'), cryptoAddress, {
+                width: 200,
+                height: 200,
+                margin: 1
+            }, function(error) {
+                if (error) console.error('QR Code error:', error);
             });
+        }
+
+        // Database Functions
+        async function loadUserOrders(userId) {
+            // In production, load from database
+            const ordersList = document.getElementById('ordersList');
             
-            copyToClipboard(chatText);
-            showCopyFeedback('Full chat copied to clipboard!');
+            // Sample orders
+            const orders = [
+                {
+                    id: '00001',
+                    service: 'Instagram Followers - Real & Active',
+                    status: 'complete',
+                    progress: 100,
+                    link: 'https://instagram.com/test',
+                    quantity: 1000,
+                    startCount: 500,
+                    remains: 0,
+                    amount: 150,
+                    adminComment: 'Completed successfully',
+                    refill: false,
+                    time: '2023-10-15 14:30'
+                },
+                {
+                    id: '00002',
+                    service: 'YouTube Views',
+                    status: 'processing',
+                    progress: 45,
+                    link: 'https://youtube.com/test',
+                    quantity: 5000,
+                    startCount: 0,
+                    remains: 5000,
+                    amount: 250,
+                    adminComment: 'In progress',
+                    refill: true,
+                    time: '2023-10-16 10:15'
+                }
+            ];
+            
+            ordersList.innerHTML = '';
+            
+            orders.forEach(order => {
+                const orderCard = document.createElement('div');
+                orderCard.className = 'order-card';
+                
+                const statusClass = 'status-' + order.status;
+                const statusText = order.status.charAt(0).toUpperCase() + order.status.slice(1);
+                
+                orderCard.innerHTML = `
+                    <div class="order-header">
+                        <div class="order-id">#${order.id}</div>
+                        <div class="order-status ${statusClass}">${statusText}</div>
+                    </div>
+                    
+                    <div class="service-name">${order.service}</div>
+                    
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${order.progress}%"></div>
+                    </div>
+                    
+                    <div class="order-details">
+                        <div class="order-detail">
+                            <label>Link</label>
+                            <span>${order.link}</span>
+                        </div>
+                        <div class="order-detail">
+                            <label>Quantity</label>
+                            <span>${order.quantity}</span>
+                        </div>
+                        <div class="order-detail">
+                            <label>Start Count</label>
+                            <span>${order.startCount}</span>
+                        </div>
+                        <div class="order-detail">
+                            <label>Remains</label>
+                            <span>${order.remains}</span>
+                        </div>
+                        <div class="order-detail">
+                            <label>Amount</label>
+                            <span>${formatCurrency(order.amount)} BDT</span>
+                        </div>
+                    </div>
+                    
+                    <div class="order-actions">
+                        <button class="btn btn-small btn-copy" onclick="copyToClipboard('${order.link}')">
+                            <i class="fas fa-copy"></i> Copy Link
+                        </button>
+                        <button class="btn btn-small btn-primary" onclick="window.open('${order.link}', '_blank')">
+                            <i class="fas fa-external-link-alt"></i> Redirect
+                        </button>
+                        ${order.refill ? '<button class="btn btn-small" style="background: #d4edda; color: #155724;"><i class="fas fa-redo"></i> Refill</button>' : ''}
+                    </div>
+                `;
+                
+                ordersList.appendChild(orderCard);
+            });
+        }
+
+        function loadPaymentHistory(userId) {
+            // In production, load from database
+            const paymentHistory = document.getElementById('paymentHistory');
+            
+            // Sample payment history
+            const payments = [
+                { id: 'P0001', time: '2023-10-15 14:30', method: 'BDT Payment', trxId: 'TRX123456', amount: 500, status: 'Approved', comment: 'Payment received' },
+                { id: 'P0002', time: '2023-10-16 10:15', method: 'Crypto (USDT)', trxId: '0xabc123...', amount: 10, status: 'Pending', comment: 'Waiting for confirmation' }
+            ];
+            
+            paymentHistory.innerHTML = '';
+            
+            payments.forEach(payment => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${payment.id}</td>
+                    <td>${payment.time}</td>
+                    <td>${payment.method}</td>
+                    <td>${payment.trxId}</td>
+                    <td>${formatCurrency(payment.amount)} ${payment.method.includes('BDT') ? 'BDT' : 'USDT'}</td>
+                    <td><span class="order-status ${payment.status === 'Approved' ? 'status-complete' : 'status-pending'}">${payment.status}</span></td>
+                    <td>${payment.comment}</td>
+                `;
+                paymentHistory.appendChild(row);
+            });
+        }
+
+        function loadSupportRequests(userId) {
+            // In production, load from database
+            const requestHistory = document.getElementById('requestHistory');
+            
+            // Sample requests
+            const requests = [
+                { id: 'R0001', type: 'Speed up my order', description: 'Please speed up order #00002', status: 'Resolved', reply: 'Order has been prioritized', date: '2023-10-15' },
+                { id: 'R0002', type: 'Payment Issue', description: 'Payment P0002 not approved yet', status: 'Pending', reply: 'Under review', date: '2023-10-16' }
+            ];
+            
+            requestHistory.innerHTML = '';
+            
+            requests.forEach(req => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${req.id}</td>
+                    <td>${req.type}</td>
+                    <td>${req.description}</td>
+                    <td><span class="order-status ${req.status === 'Resolved' ? 'status-complete' : 'status-pending'}">${req.status}</span></td>
+                    <td>${req.reply}</td>
+                    <td>${req.date}</td>
+                `;
+                requestHistory.appendChild(row);
+            });
+        }
+
+        // Admin Functions
+        function loadAdminData() {
+            // Load users
+            loadAdminUsers();
+            
+            // Load admin orders
+            loadAdminOrders();
+            
+            // Load admin payments
+            loadAdminPayments();
+            
+            // Load categories
+            loadAdminCategories();
+            
+            // Load services
+            loadAdminServices();
+            
+            // Load support requests
+            loadAdminSupportRequests();
+        }
+
+        function loadAdminUsers() {
+            const table = document.getElementById('adminUsersTable');
+            
+            // Sample users
+            const users = [
+                { userID: 'user123', email: 'user1@gmail.com', password: 'pass123', type: 'Form', balance: 1500, joined: '2023-10-01' },
+                { userID: 'john_doe', email: 'john@gmail.com', password: 'john123', type: 'Google', balance: 500, joined: '2023-10-05' },
+                { userID: 'jane_smith', email: 'jane@gmail.com', password: 'jane123', type: 'Form', balance: 2500, joined: '2023-10-10' }
+            ];
+            
+            table.innerHTML = '';
+            
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.userID}</td>
+                    <td>${user.email}</td>
+                    <td>${user.password} <button class="btn-copy" onclick="copyToClipboard('${user.password}')"><i class="fas fa-copy"></i></button></td>
+                    <td>${user.type}</td>
+                    <td>${formatCurrency(user.balance)} BDT</td>
+                    <td>${user.joined}</td>
+                    <td class="table-actions">
+                        <button class="btn-edit"><i class="fas fa-edit"></i></button>
+                        <button class="btn-delete"><i class="fas fa-ban"></i></button>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+        }
+
+        function loadAdminOrders() {
+            // Similar to loadAdminUsers but for orders
+        }
+
+        function loadAdminPayments() {
+            // Similar to loadAdminUsers but for payments
+        }
+
+        function loadAdminCategories() {
+            const table = document.getElementById('adminCategoriesTable');
+            
+            // Sample categories
+            const categories = [
+                { id: 1, name: 'Followers', icon: 'fas fa-users', count: 3 },
+                { id: 2, name: 'Likes', icon: 'fas fa-heart', count: 2 },
+                { id: 3, name: 'Views', icon: 'fas fa-eye', count: 2 },
+                { id: 4, name: 'Comments', icon: 'fas fa-comments', count: 2 }
+            ];
+            
+            table.innerHTML = '';
+            
+            categories.forEach(cat => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${cat.id}</td>
+                    <td>${cat.name}</td>
+                    <td><i class="${cat.icon}"></i> ${cat.icon}</td>
+                    <td>${cat.count}</td>
+                    <td class="table-actions">
+                        <button class="btn-edit"><i class="fas fa-edit"></i></button>
+                        <button class="btn-delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+        }
+
+        function loadAdminServices() {
+            const table = document.getElementById('adminServicesTable');
+            
+            // Sample services
+            const services = [
+                { code: 'IGF100', name: 'Instagram Followers', category: 'Followers', priceBDT: 150, refill: '30 Days', cancel: 'Yes' },
+                { code: 'IGL100', name: 'Instagram Likes', category: 'Likes', priceBDT: 20, refill: 'No', cancel: 'Yes' },
+                { code: 'YTV100', name: 'YouTube Views', category: 'Views', priceBDT: 50, refill: 'Lifetime', cancel: 'No' }
+            ];
+            
+            table.innerHTML = '';
+            
+            services.forEach(service => {
+                const priceUSDT = service.priceBDT / conversionRate;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${service.code}</td>
+                    <td>${service.name}</td>
+                    <td>${service.category}</td>
+                    <td>${formatCurrency(service.priceBDT)}</td>
+                    <td>${formatCurrency(priceUSDT, 7)}</td>
+                    <td>${service.refill}</td>
+                    <td>${service.cancel}</td>
+                    <td class="table-actions">
+                        <button class="btn-edit"><i class="fas fa-edit"></i></button>
+                        <button class="btn-delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+        }
+
+        function loadAdminSupportRequests() {
+            const table = document.getElementById('adminSupportTable');
+            
+            // Sample requests
+            const requests = [
+                { id: 'R0001', userID: 'user123', type: 'Speed up', description: 'Speed up order #00002', status: 'Resolved', reply: 'Done', date: '2023-10-15' },
+                { id: 'R0002', userID: 'john_doe', type: 'Payment', description: 'Payment not approved', status: 'Pending', reply: 'Checking', date: '2023-10-16' }
+            ];
+            
+            table.innerHTML = '';
+            
+            requests.forEach(req => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${req.id}</td>
+                    <td>${req.userID}</td>
+                    <td>${req.type}</td>
+                    <td>${req.description}</td>
+                    <td><span class="order-status ${req.status === 'Resolved' ? 'status-complete' : 'status-pending'}">${req.status}</span></td>
+                    <td>${req.reply}</td>
+                    <td>${req.date}</td>
+                    <td class="table-actions">
+                        <button class="btn-edit"><i class="fas fa-reply"></i></button>
+                        <button class="btn-delete"><i class="fas fa-check"></i></button>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+        }
+
+        // Email Integration
+        function sendEmailNotification(to, subject, body) {
+            // In production, integrate with Brevo API
+            console.log('Email notification:', { to, subject, body });
+            
+            // Brevo API call would go here
+            // Using the provided API key: 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
+        }
+
+        function sendAdminNotification(message) {
+            // In production, integrate with Formspree
+            console.log('Admin notification:', message);
+            
+            // Formspree API call would go here
+            // Using the provided endpoint: https://formspree.io/f/xykzoodw
+        }
+
+        // Utility Functions
+        function showLoading(button) {
+            const span = button.querySelector('span');
+            button.dataset.originalText = span.textContent;
+            span.innerHTML = '<div class="loading"></div>';
+            button.disabled = true;
+        }
+
+        function hideLoading(button, text) {
+            const span = button.querySelector('span');
+            span.textContent = text || button.dataset.originalText;
+            button.disabled = false;
+        }
+
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
         }
 
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
-                console.log('Text copied to clipboard');
+                showNotification('Copied to clipboard!', 'success');
             }).catch(err => {
-                console.error('Failed to copy text: ', err);
-                // Fallback method
-                const textArea = document.createElement('textarea');
-                textArea.value = text;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
+                console.error('Copy failed:', err);
             });
         }
 
-        function showCopyFeedback(message = 'Message copied!') {
-            const feedback = document.createElement('div');
-            feedback.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: rgba(0,0,0,0.8);
-                color: white;
-                padding: 10px 20px;
-                border-radius: 10px;
-                z-index: 1000;
-                font-size: 0.9em;
-            `;
-            feedback.textContent = message;
-            document.body.appendChild(feedback);
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        // Default data loading
+        function loadDefaultData() {
+            // Set conversion rate
+            document.getElementById('conversionRate').value = conversionRate;
+            document.getElementById('currentRate').textContent = conversionRate;
             
-            setTimeout(() => {
-                document.body.removeChild(feedback);
-            }, 2000);
-        }
-
-        function showInfo() {
-            alert(`👑 Queen Ripa 😘🌸 - AI Chat Bot\n\n` +
-                  `🌟 About Me:\n` +
-                  `• Name: Queen Ripa 😘🌸\n` +
-                  `• AI Assistant powered by Groq\n` +
-                  `• Multilingual support\n` +
-                  `• Muslim-friendly responses\n\n` +
-                  `⚡ Features:\n` +
-                  `• Ultra-fast responses\n` +
-                  `• Message sent indicators\n` +
-                  `• Copy individual messages\n` +
-                  `• Copy full chat history\n` +
-                  `• Link and code formatting\n` +
-                  `• Special solution boxes\n` +
-                  `• Chat history saved\n` +
-                  `• Admin panel for monitoring\n` +
-                  `• User limit management\n` +
-                  `• Clean, modern interface\n\n` +
-                  `💝 Always here to help you!`);
-        }
-
-        function getCurrentTime() {
-            const now = new Date();
-            return now.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: true 
+            // Load avatars
+            const avatarList = document.getElementById('avatarList');
+            const avatars = ['👤', '👨', '👩', '🧑', '👨‍💼', '👩‍💼', '👨‍🎓', '👩‍🎓'];
+            
+            avatars.forEach(avatar => {
+                const avatarDiv = document.createElement('div');
+                avatarDiv.style.cssText = 'width: 50px; height: 50px; border-radius: 50%; background: #f8f9fa; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer;';
+                avatarDiv.textContent = avatar;
+                avatarDiv.onclick = function() {
+                    document.getElementById('userAvatar').textContent = avatar;
+                    document.getElementById('topUserAvatar').textContent = avatar;
+                    document.getElementById('profileAvatar').textContent = avatar;
+                };
+                avatarList.appendChild(avatarDiv);
             });
         }
 
-        // Keep input field focused but allow clicking elsewhere
-        document.addEventListener('click', function(e) {
-            if (e.target !== userInput && !e.target.closest('.input-container')) {
-                // Don't refocus if clicking outside the input area
-                return;
+        // Additional admin functions
+        function updateConversionRate() {
+            const newRate = parseFloat(document.getElementById('conversionRate').value);
+            if (newRate > 0) {
+                conversionRate = newRate;
+                document.getElementById('currentRate').textContent = newRate;
+                updateCurrencyDisplay();
+                showNotification('Conversion rate updated successfully!', 'success');
+            } else {
+                showNotification('Please enter a valid rate', 'error');
             }
-            userInput.focus();
+        }
+
+        function updateLogo() {
+            const logoUrl = document.getElementById('logoUrl').value;
+            if (logoUrl) {
+                // In production, save to database
+                showNotification('Logo URL updated!', 'success');
+            }
+        }
+
+        function addAvatar() {
+            const newAvatar = prompt('Enter emoji for new avatar:');
+            if (newAvatar) {
+                const avatarList = document.getElementById('avatarList');
+                const avatarDiv = document.createElement('div');
+                avatarDiv.style.cssText = 'width: 50px; height: 50px; border-radius: 50%; background: #f8f9fa; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer;';
+                avatarDiv.textContent = newAvatar;
+                avatarDiv.onclick = function() {
+                    document.getElementById('userAvatar').textContent = newAvatar;
+                    document.getElementById('topUserAvatar').textContent = newAvatar;
+                    document.getElementById('profileAvatar').textContent = newAvatar;
+                };
+                avatarList.appendChild(avatarDiv);
+                showNotification('Avatar added!', 'success');
+            }
+        }
+
+        function changeAvatar() {
+            // Open avatar selection modal
+            showNotification('Click on any avatar to select it', 'info');
+        }
+
+        // Window event listeners
+        window.addEventListener('click', function(e) {
+            // Close modals when clicking outside
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('show');
+            }
         });
+
+        // Initialize QR code
+        window.onload = function() {
+            generateCryptoQR();
+        };
     </script>
 </body>
 </html>
